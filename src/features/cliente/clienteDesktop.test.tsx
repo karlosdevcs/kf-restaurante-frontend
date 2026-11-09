@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { formatBRL } from '../../lib/formatar'
 import { definirDesktop, removerMatchMedia } from '../../test/matchMedia'
-import { MENSAGEM_DO_PEDIDO, servirCliente } from '../../test/cliente'
+import { MENSAGEM_DO_PEDIDO, OPCOES, servirCliente } from '../../test/cliente'
 import { renderizarApp } from '../../test/loja'
 
 beforeEach(() => definirDesktop(true))
@@ -40,6 +40,14 @@ describe('pagina unica do computador', () => {
     expect(carrinho().getByRole('button', { name: 'Confirmar pedido' })).toBeDisabled()
     expect(carrinho().getByText('O pedido chega no WhatsApp da loja.')).toBeInTheDocument()
     expect(screen.queryByText(/taxa/i)).not.toBeInTheDocument() // o backend nao cobra entrega: nao existe linha de taxa
+  })
+
+  it('mostra quando o cardapio foi atualizado pela ultima vez', async () => {
+    const agora = new Date().toISOString()
+    servirCliente({ cardapio: { id: 5, dataPublicacao: '2026-11-08', situacao: 'Publicado', atualizadoEm: agora, opcoes: OPCOES } })
+    await abrir()
+
+    expect(screen.getByText(/^Cardápio atualizado hoje às \d{2}:\d{2}$/)).toBeInTheDocument()
   })
 
   it('?tamanho= mantem o tamanho; /montar/:id vira /?tamanho=:id; /pedido volta para /', async () => {

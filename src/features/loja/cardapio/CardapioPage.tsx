@@ -130,7 +130,7 @@ export function CardapioPage() {
             Cardápio do dia
           </h1>
           {situacao ? <span className="rounded-pilula bg-brand-tint px-3 py-1 text-[13px] font-bold text-brand-strong">{situacao}</span> : null}
-          {cardapio ? <span className="text-[13px] text-muted">Atualizado {rotuloDeAtualizacao(cardapio.atualizadoEm)}</span> : null}
+          {cardapio?.atualizadoEm ? <span className="text-[13px] text-muted">Atualizado {rotuloDeAtualizacao(cardapio.atualizadoEm)}</span> : null}
         </div>
         {semCardapio ? (
           <p className="text-[14px] text-muted">Ainda não há cardápio de hoje. Escolha as opções e crie o cardápio.</p>

@@ -5,7 +5,7 @@ import { Button, ClientStatusBadge, FilterPill, Logo, SizeCard } from '../../com
 import { quantidadeDeItens, totalDoCarrinho } from '../../lib/carrinho'
 import { categoriaInfo } from '../../lib/categoriaConfig'
 import { cx } from '../../lib/cx'
-import { formatBRL, pluralizar } from '../../lib/formatar'
+import { formatBRL, pluralizar, rotuloDeAtualizacao } from '../../lib/formatar'
 import { tamanhoPadrao } from '../../lib/regrasMarmita'
 import { useFocoNoTitulo } from '../../lib/useFocoNoTitulo'
 import { CartaoDeErroDeCarga, CartaoSemCardapio, Esqueleto, FaixaDeBloqueio } from './Estados'
@@ -60,6 +60,7 @@ export function CardapioMobile() {
 
         {pronto ? (
           <>
+            {dados.atualizadoEm ? <p className="-mb-3 text-[12px] text-muted">Cardápio atualizado {rotuloDeAtualizacao(dados.atualizadoEm)}</p> : null}
             <section aria-labelledby="titulo-monte">
               <h2 id="titulo-monte" className="mb-3 text-[16px] font-bold">
                 Monte sua marmita

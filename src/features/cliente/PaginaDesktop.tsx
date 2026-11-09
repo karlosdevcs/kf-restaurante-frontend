@@ -5,7 +5,7 @@ import { Banner, Button, ClientStatusBadge, FilterPill, IconeFiltro, IngredientT
 import { detalheDoItem, itemEstaEsgotado, quantidadeDeItens } from '../../lib/carrinho'
 import { categoriaInfo } from '../../lib/categoriaConfig'
 import { cx } from '../../lib/cx'
-import { formatBRL, pluralizar } from '../../lib/formatar'
+import { formatBRL, pluralizar, rotuloDeAtualizacao } from '../../lib/formatar'
 import { tamanhoPadrao } from '../../lib/regrasMarmita'
 import { CartaoDeErroDeCarga, CartaoSemCardapio, Esqueleto, FaixaDeBloqueio } from './Estados'
 import { FormularioDoPedido } from './FormularioDoPedido'
@@ -99,6 +99,7 @@ export function PaginaDesktop() {
 
             {pronto && tamanho ? (
               <div className="flex flex-col gap-7">
+                {dados.atualizadoEm ? <p className="-mb-4 text-[13px] text-muted">Cardápio atualizado {rotuloDeAtualizacao(dados.atualizadoEm)}</p> : null}
                 <section aria-labelledby="titulo-categoria">
                   <div className="mb-3 flex items-center justify-between">
                     <h2 id="titulo-categoria" className="text-[18px] font-bold">

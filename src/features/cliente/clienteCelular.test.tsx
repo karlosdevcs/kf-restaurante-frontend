@@ -88,6 +88,13 @@ describe('cardapio (tela 1)', () => {
     expect(ver).toHaveTextContent(brl(12))
   })
 
+  it('mostra quando o cardapio foi atualizado pela ultima vez', async () => {
+    servirCliente({ cardapio: { id: 5, dataPublicacao: '2026-11-08', situacao: 'Publicado', atualizadoEm: '2020-03-05T15:30:00Z', opcoes: OPCOES } })
+    await abrirCardapio()
+
+    expect(screen.getByText('Cardápio atualizado 05/03 às 12:30')).toBeInTheDocument()
+  })
+
   it('selo "Aberto" quando a loja esta aberta', async () => {
     servirCliente()
     await abrirCardapio()

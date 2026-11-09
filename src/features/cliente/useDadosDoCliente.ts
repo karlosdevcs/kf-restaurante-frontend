@@ -21,6 +21,8 @@ export interface DadosDoCliente {
   restaurante: Restaurante | undefined
   tamanhos: Tamanho[]
   cardapioId: number | null
+  /** UTC: quando as opcoes do cardapio mudaram pela ultima vez */
+  atualizadoEm: string | null
   opcoes: Opcao[]
   opcoesPorId: ReadonlyMap<number, Opcao>
   /** categorias que nao sao Bebida nem Sobremesa: entram nos tiles de montar e em "Hoje tem" */
@@ -88,6 +90,7 @@ export function useDadosDoCliente(): DadosDoCliente {
     restaurante: restaurante.data,
     tamanhos: tamanhos.data ?? [],
     cardapioId: dadosDoCardapio?.id ?? null,
+    atualizadoEm: dadosDoCardapio?.atualizadoEm ?? null,
     opcoes,
     ...derivados,
     semCardapio: estado === 'pronto' && (dadosDoCardapio === null || derivados.componentes.length === 0),
