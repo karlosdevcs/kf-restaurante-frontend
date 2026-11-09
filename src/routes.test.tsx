@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { criarQueryClient } from './api/queryClient'
 import { rotas } from './routes'
+import { servirCliente } from './test/cliente'
 
 function abrir(caminho: string) {
   const roteador = createMemoryRouter(rotas, { initialEntries: [caminho] })
@@ -22,14 +23,15 @@ describe('rotas', () => {
   })
 
   it.each([
-    ['/', 'Cardápio'],
-    ['/montar/2', 'Montar marmita'],
+    ['/', 'Monte sua marmita'],
+    ['/montar/2', 'Marmita M'],
     ['/pedido', 'Meu pedido'],
-    ['/confirmacao/14', 'Confirmação'],
-  ])('rota publica do cliente %s existe', async (caminho, nome) => {
+    ['/confirmacao/14', 'Monte sua marmita'], // sem o dado do pedido, volta para o cardapio
+  ])('rota publica do cliente %s existe', async (caminho, titulo) => {
+    servirCliente()
     abrir(caminho)
 
-    expect(await screen.findByText(`${nome}: em construção.`)).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: titulo })).toBeInTheDocument()
   })
 
   it('/loja/entrar abre a tela de login (bloco carregado sob demanda)', async () => {

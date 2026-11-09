@@ -8,7 +8,7 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 
 ## Fase atual
 
-**Fase 4: cliente celular** (em andamento)
+**Fase 5: cliente desktop** (em andamento)
 
 ## Fases concluídas
 
@@ -16,7 +16,8 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 |---|---|---|
 | 1. Projeto base | `afbc430` | Vite, TypeScript strict, Tailwind v4 com tokens, Inter auto-hospedada, rotas vazias (`/loja/*` lazy), client de API com `ProblemDetails`/401/403, 1 arquivo por recurso (33 rotas), TanStack Query, Vitest + MSW (14 testes), `.env.example` |
 | 2. Átomos e catálogo `/_ui` | `1c56700` | 20 átomos em `components/ui/` com as medidas da seção 8 (Logo, Button/LinkButton, FilterPill, TopNavPill, SizeButton, ChoiceButton, SizeCard, IngredientTile, Stepper, LineStepper, Field/PasswordField/TextAreaField, ListCheckbox, Banner, Chip, Dialog, ClientStatusBadge, OrderStatusPill, StatusButton, AvailabilityToggle, Tabs, BottomTabBar, MarmitaIllustration), ícones SVG, `lib/` (categoriaConfig, formatar, statusPedido, useIsDesktop), catálogo `/_ui` só em dev, 120 testes |
-| 3. Autenticação | (hash no commit seguinte) | `AuthProvider` (só dentro de `/loja`), login `/loja/entrar`, sessão em `sessionStorage`, guardas `RequerSessao`/`RequerAba`, `GET /auth/eu` (foco, 60 s, após 403), expiração por horário, `UserMenu`, `LojaLayout` com abas por permissão, `SemAcesso`, `ContaPage` (trocar senha), `lib/permissoes.ts`, hooks `useSessao`/`usePermissao`/`usePermissoes`/`useEhGestor` e `<Pode>`; testes 7, 8 e 9 (33 novos, 153 no total) |
+| 3. Autenticação | `b9eaf34` | `AuthProvider` (só dentro de `/loja`), login `/loja/entrar`, sessão em `sessionStorage`, guardas `RequerSessao`/`RequerAba`, `GET /auth/eu` (foco, 60 s, após 403), expiração por horário, `UserMenu`, `LojaLayout` com abas por permissão, `SemAcesso`, `ContaPage` (trocar senha), `lib/permissoes.ts`, hooks `useSessao`/`usePermissao`/`usePermissoes`/`useEhGestor` e `<Pode>`; testes 7, 8 e 9 (33 novos, 153 no total) |
+| 4. Cliente celular | (hash no commit seguinte) | Telas 1 a 4 com dados reais (`CardapioMobile`, `MontarMobile`, `PedidoMobile`, `ConfirmacaoPage`), carrinho e formulário em Context + reducer (`ClienteProvider`), `useDadosDoCliente` (restaurante, cardápio de hoje e tamanhos; reconsulta a cada 60 s e no foco), `useMontagem`, `useFinalizarPedido`, `FormularioDoPedido` e `LinhaDoCarrinho` (já compartilhados com a fase 5), regras puras em `lib/regrasMarmita`, `lib/carrinho` e `lib/pedidoCliente`; testes 1, 2, 3, 11 e 12 (58 novos, 211 no total) |
 
 ## Divergências encontradas (spec x código)
 
@@ -69,6 +70,17 @@ Decisões marcadas como "decisão minha" na spec seguem o padrão que a própria
 | 25 | `Tabs` deixa a primeira aba alcançável pelo Tab quando nenhuma está ativa (ex.: Minha conta) | Sem isso o roving tabindex tirava a barra de abas do teclado nessa tela |
 | 26 | Erros de preenchimento do login aparecem só ao enviar e somem do campo editado; a senha limpa após falha não gera "Informe a senha." | Bug que o teste pegou: validar derivando de `tentou` mostrava dois alertas depois de um 401 |
 | 27 | `queryClient.clear()` ao sair deixa uma consulta `['eu']` vazia (o observador desabilitado a recria). Os testes conferem "nenhum dado", não "cache vazio" | É um detalhe do TanStack Query; sem dado, nada da loja sobra |
+| 28 | Valores iniciais do formulário: "Retirada" e "Pix" | O payload exige uma forma de pagamento e um tipo de entrega; a spec não diz qual vem marcado |
+| 29 | "Fazer outro pedido" limpa carrinho, confirmação, troco e observação, mas mantém nome, WhatsApp, entrega e pagamento | A spec manda limpar "o carrinho e a confirmação"; manter os dados da pessoa evita redigitar |
+| 30 | O carrinho só é limpo em "Fazer outro pedido" (como a spec manda), não ao finalizar. A rota de confirmação substitui `/pedido` no histórico (`replace`) | Voltar do navegador não cai de novo no formulário de finalização |
+| 31 | A linha do carrinho guarda nome e preço do momento em que foi adicionada; "acabou" é calculado ao vivo. Componente que saiu do cardápio conta como esgotado | A spec 9.1 pede preço unitário guardado; a API recalcula o total, então o front só avisa |
+| 32 | Com item esgotado no carrinho, a mensagem acima do botão é "Remova os itens que acabaram" (além do texto da linha) | A spec só manda desabilitar o botão; sem mensagem o botão desabilitado ficaria sem explicação |
+| 33 | `staleTime: 0` nas consultas de restaurante e cardápio | O padrão do `QueryClient` (15 s) engolia a reconsulta ao voltar o foco, que a spec 9.1 exige |
+| 34 | Enquanto a fase 5 não chega, `/` no computador mostra o layout do celular (`PaginaInicial`) | Evita deixar a rota vazia; a fase 5 troca por página única |
+| 35 | Loja fechada ou cardápio encerrado: tiles da montagem ficam bloqueados e `SizeCard` ganhou `desabilitado` (mesmo visual, sem navegar) | A seção 14 manda desabilitar adicionar, montar e finalizar |
+| 36 | "Tamanho do meio" é o índice `floor((n - 1) / 2)` (n = 3 dá o segundo; n = 1 ou 2 dá o primeiro) | A spec só define 3 ou menos; o resto generaliza sem mudar esses casos |
+| 37 | O telefone vai para a API só com dígitos | A API aceita com ou sem máscara; só dígitos evita surpresa |
+| 38 | Nos testes, o `QueryClient` não repete falhas (`retry: false`) | A repetição de 1 s do app atrasaria cada teste de erro; o comportamento do app não muda |
 
 ## Riscos e pendências de entrega
 

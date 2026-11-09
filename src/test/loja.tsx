@@ -37,6 +37,8 @@ export function responderEu(obter: () => Usuario) {
 
 export function renderizarLoja(caminho: string) {
   const queryClient = criarQueryClient()
+  // sem nova tentativa nos testes: uma falha aparece na hora (o atraso de 1 s da repeticao so atrasaria o teste)
+  queryClient.setDefaultOptions({ ...queryClient.getDefaultOptions(), queries: { ...queryClient.getDefaultOptions().queries, retry: false } })
   const roteador = createMemoryRouter(rotas, { initialEntries: [caminho] })
   const visual = render(
     <QueryClientProvider client={queryClient}>
@@ -45,3 +47,6 @@ export function renderizarLoja(caminho: string) {
   )
   return { queryClient, roteador, ...visual }
 }
+
+// mesmo render, nome que nao sugere "so a loja": serve para qualquer rota do app
+export const renderizarApp = renderizarLoja

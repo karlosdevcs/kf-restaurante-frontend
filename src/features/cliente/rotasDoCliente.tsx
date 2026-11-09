@@ -1,11 +1,20 @@
 import type { RouteObject } from 'react-router-dom'
-import { Pendente } from '../Pendente'
+import { ClienteLayout } from './ClienteProvider'
+import { ConfirmacaoPage } from './ConfirmacaoPage'
+import { MontarMobile } from './MontarMobile'
+import { PaginaInicial } from './PaginaInicial'
+import { PedidoMobile } from './PedidoMobile'
 
-// FASE 1: rotas vazias. As telas reais entram nas fases 4 (celular) e 5 (computador).
-// Rotas publicas do cliente (spec, seção 7). No computador, /montar e /pedido redirecionam para a pagina unica.
+// Rotas publicas do cliente (spec, secao 7), sob um layout que guarda carrinho e formulario.
+// No computador, /montar e /pedido redirecionam para a pagina unica (fase 5).
 export const rotasDoCliente: RouteObject[] = [
-  { path: '/', element: <Pendente nome="Cardápio" /> },
-  { path: '/montar/:tamanhoId', element: <Pendente nome="Montar marmita" /> },
-  { path: '/pedido', element: <Pendente nome="Meu pedido" /> },
-  { path: '/confirmacao/:numero', element: <Pendente nome="Confirmação" /> },
+  {
+    element: <ClienteLayout />,
+    children: [
+      { path: '/', element: <PaginaInicial /> },
+      { path: '/montar/:tamanhoId', element: <MontarMobile /> },
+      { path: '/pedido', element: <PedidoMobile /> },
+      { path: '/confirmacao/:numero', element: <ConfirmacaoPage /> },
+    ],
+  },
 ]
