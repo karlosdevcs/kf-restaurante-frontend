@@ -8,7 +8,7 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 
 ## Fase atual
 
-**Todas as 11 fases concluídas.** Falta só o commit final de documentação com o hash da fase 11.
+**Todas as 11 fases concluídas.** Cada fase tem o hash do seu commit na tabela abaixo.
 
 ## Fases concluídas
 
@@ -24,7 +24,7 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 | 8. Loja: aba Cadastros | `9913bf1` | `CadastrosPage` (computador: Opções e Tamanhos lado a lado; celular: duas `ChoiceButton`), `OpcoesSecao` com tabela/linhas e formulário (regra do preço: Bebida e Sobremesa exigem, componente só com "Vender também avulsa"; 409 abaixo do Nome, 400 em Banner), `TamanhosSecao` com cartões, formulário e limites por categoria (`PUT /tamanhos/{id}/limites` substitui tudo); `lib/cadastros` e `lib/dinheiro`; 36 testes novos (315 no total) |
 | 9. Loja: aba Usuários | `9fd6679` | `UsuariosPage` (tabela no computador, cartões no celular, marca "Você", só "Minha conta" na própria linha), formulários "Novo usuário" e "Editar" com a hierarquia espelhada (`lib/usuarios`: papéis que cada um cria, permissões que cada um concede, checkbox habilitado se quem edita tem a permissão ou o editado já a tinha), `Dialog` de desativar e de redefinir senha, ativar sem confirmação; teste 10 completo; 23 testes novos (338 no total); `Pendente.tsx` removido |
 | 10. Estados e acessibilidade | `ced700a` | Auditoria da seção 15: foco no título ao trocar de tela no celular (`useFocoNoTitulo`), foco no primeiro campo dos formulários, `<title>` por rota (`useTituloDaPagina`), anúncio aria-live da mudança de aba por falta de permissão, área de toque dos botões de texto; os estados de carregamento, vazio e erro da seção 14 já nasceram com cada tela e ganharam testes de erro para Opções, Tamanhos e Usuários; teste estático das regras de segurança (`seguranca.test.ts`); 24 testes novos (362 no total) |
-| 11. Testes, README e aceite | (hash no commit de documentação) | Os 13 testes da seção 18 estão cobertos (mapa em "Cobertura da seção 18", mais abaixo), README completo (rotas, abas por permissão, decisões, limitações, lacunas) e verificação contra a **API real** (43 checagens de contrato por script e 54 verificações de interface com o Edge, sem screenshots) que achou e corrigiu um bug de CSS que o jsdom não mostra; 365 testes no total |
+| 11. Testes, README e aceite | `ef12b3c` | Os 13 testes da seção 18 estão cobertos (mapa em "Cobertura da seção 18", mais abaixo), README completo (rotas, abas por permissão, decisões, limitações, lacunas) e verificação contra a **API real** (43 checagens de contrato por script e 54 verificações de interface com o Edge, sem screenshots) que achou e corrigiu um bug de CSS que o jsdom não mostra; 365 testes no total |
 
 ## Divergências encontradas (spec x código)
 
