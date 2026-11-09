@@ -10,6 +10,7 @@ const respostasDeFundo = [
   http.get(`${API}/restaurante`, () => HttpResponse.json({ aberto: true, whatsApp: '5531999999999' })),
   http.get(`${API}/pedidos`, () => HttpResponse.json([])),
   http.get(`${API}/opcoes`, () => HttpResponse.json([])),
+  http.get(`${API}/tamanhos`, () => HttpResponse.json([])),
   http.get(`${API}/cardapios/hoje`, () => HttpResponse.json({ status: 404, title: 'Não encontrado.' }, { status: 404 })),
 ]
 

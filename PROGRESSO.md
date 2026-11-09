@@ -8,7 +8,7 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 
 ## Fase atual
 
-**Fase 8: loja, aba Cadastros** (em andamento)
+**Fase 9: loja, aba Usuários** (em andamento)
 
 ## Fases concluídas
 
@@ -20,7 +20,8 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 | 4. Cliente celular | `9dc2b4f` | Telas 1 a 4 com dados reais (`CardapioMobile`, `MontarMobile`, `PedidoMobile`, `ConfirmacaoPage`), carrinho e formulário em Context + reducer (`ClienteProvider`), `useDadosDoCliente` (restaurante, cardápio de hoje e tamanhos; reconsulta a cada 60 s e no foco), `useMontagem`, `useFinalizarPedido`, `FormularioDoPedido` e `LinhaDoCarrinho` (já compartilhados com a fase 5), regras puras em `lib/regrasMarmita`, `lib/carrinho` e `lib/pedidoCliente`; testes 1, 2, 3, 11 e 12 (58 novos, 211 no total) |
 | 5. Cliente desktop | `05506e3` | `PaginaDesktop` (filtros, produto, "Pra acompanhar" e carrinho lateral com o mesmo `FormularioDoPedido` do celular, "Confirmar pedido"), escolha do layout por `useIsDesktop` em `PaginaInicial`, `/montar/:id` vira `/?tamanho=:id` e `/pedido` volta a `/` no computador, confirmação centralizada (max 680) com os botões no corpo; 13 testes novos (224 no total) |
 | 6. Loja: casca e aba Pedidos | `7f55a5e` | `LojaLayout` com cabeçalho (Logo + "Painel da loja", `StatusButton` e `UserMenu`), abas por permissão e banner de erro de mutação (`AvisosDaLoja`); `PedidosPage` com filtros por contagem, tabela (computador) e cartões (celular), detalhe sob demanda com cache sem expiração, polling de 30 s, anúncio de pedido novo, "Chamar no WhatsApp"; coluna `AcabouAlgumaCoisa` (EsgotarOpcoes) com atualização otimista; testes 5 e 9 completos e o selo da loja; 25 testes novos (249 no total) |
-| 7. Loja: abas Hoje e Cardápio | (hash no commit seguinte) | `HojePage` (cartão de status com foco no WhatsApp quando abrir é recusado, cartão do WhatsApp com erro do 400 junto do campo, "Acabou alguma coisa?" em grade ou lista); `CardapioPage` com os 4 estados (sem cardápio, rascunho, publicado, fechado), descoberta do cardápio de hoje (GET /cardapios/hoje, depois o id do `localStorage`), 409 com a explicação do rascunho; teste 13 completo e a navegação do topo do computador conforme a seção 16.2; 30 testes novos (279 no total) |
+| 7. Loja: abas Hoje e Cardápio | `10170db` | `HojePage` (cartão de status com foco no WhatsApp quando abrir é recusado, cartão do WhatsApp com erro do 400 junto do campo, "Acabou alguma coisa?" em grade ou lista); `CardapioPage` com os 4 estados (sem cardápio, rascunho, publicado, fechado), descoberta do cardápio de hoje (GET /cardapios/hoje, depois o id do `localStorage`), 409 com a explicação do rascunho; teste 13 completo e a navegação do topo do computador conforme a seção 16.2; 30 testes novos (279 no total) |
+| 8. Loja: aba Cadastros | (hash no commit seguinte) | `CadastrosPage` (computador: Opções e Tamanhos lado a lado; celular: duas `ChoiceButton`), `OpcoesSecao` com tabela/linhas e formulário (regra do preço: Bebida e Sobremesa exigem, componente só com "Vender também avulsa"; 409 abaixo do Nome, 400 em Banner), `TamanhosSecao` com cartões, formulário e limites por categoria (`PUT /tamanhos/{id}/limites` substitui tudo); `lib/cadastros` e `lib/dinheiro`; 36 testes novos (315 no total) |
 
 ## Divergências encontradas (spec x código)
 
@@ -101,6 +102,11 @@ Decisões marcadas como "decisão minha" na spec seguem o padrão que a própria
 | 51 | No celular, o botão de ação do cardápio fica `sticky` acima da barra de abas (`bottom-14`), não `fixed` | Evita sobrepor a barra de abas e não precisa de padding extra no fim da lista |
 | 52 | A opção do cardápio usa `aria-label` só com o nome, para o nome acessível do checkbox não incluir a categoria e o preço | Os dois textos continuam visíveis |
 | 53 | Salvar o WhatsApp mostra o Banner "WhatsApp atualizado." | A seção 11.2 não dá confirmação de sucesso; sem ela a pessoa não sabe se salvou |
+| 54 | A leitura de valor em reais (troco, preço de opção, preço de tamanho) vive em `lib/dinheiro.ts` (`lerValorEmReais`); `lerTroco` continua exportada como apelido | Um parser só para os três campos |
+| 55 | Salvar um tamanho em edição faz `PUT /tamanhos/{id}` e, em seguida, `PUT /tamanhos/{id}/limites`; criar só faz `POST /tamanhos`, e a seção de limites aparece depois, na edição (a tela diz isso) | A spec põe os limites "dentro do formulário de edição". Se a segunda chamada falhar, a primeira já valeu (a lista é reconsultada) |
+| 56 | Nos formulários de cadastro o botão fica desabilitado até o formulário ser válido, e o erro de preço ou limite só aparece quando o campo tem texto | A spec manda desabilitar o botão; mostrar erro em campo vazio recém-aberto seria ruído |
+| 57 | No cartão do tamanho, limite 0 aparece como "Salada: não incluso" (a spec dá só o exemplo "Carne: até 2") | Mesma frase da tela de montagem do cliente |
+| 58 | Salvar uma opção também invalida as consultas do cardápio (`['cardapio']`) | O cardápio de hoje mostra nome, categoria e preço da opção |
 
 ## Riscos e pendências de entrega
 

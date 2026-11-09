@@ -59,7 +59,7 @@ describe('login e sessao', () => {
 
     await preencherEEnviar('pessoa@teste.local', 'qualquer-senha')
 
-    expect(await screen.findByText('Cadastros: em construção.')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Opções' })).toBeInTheDocument()
     expect(roteador.state.location.pathname).toBe('/loja/cadastros')
   })
 

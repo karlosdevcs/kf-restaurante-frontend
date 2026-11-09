@@ -1,5 +1,6 @@
 import type { CriarPedidoRequest, FormaDePagamento, ItemDoPedidoRequest, TipoDeEntrega } from '../api/tipos'
 import { totalDoCarrinho, type ItemDoCarrinho } from './carrinho'
+import { lerValorEmReais } from './dinheiro'
 import { formatBRL, somenteDigitos } from './formatar'
 
 // Formulario do cliente: validacao (12.3) e montagem do payload de POST /pedidos (12.5).
@@ -26,17 +27,8 @@ export const FORMULARIO_INICIAL: FormularioDoPedido = {
   observacao: '',
 }
 
-// "100", "100,50", "100.50", "R$ 1.000,50" -> numero; vazio ou ilegivel -> null
-export function lerTroco(texto: string): number | null {
-  let limpo = texto.replace(/R\$/gi, '').replace(/\s/g, '')
-  if (limpo === '') return null
-
-  // "1.000,50": ponto e milhar quando ha virgula; sem virgula, ponto e decimal
-  limpo = limpo.includes(',') ? limpo.replace(/\./g, '').replace(',', '.') : limpo
-  if (!/^\d+(\.\d+)?$/.test(limpo)) return Number.NaN
-
-  return Number(limpo)
-}
+// valor em reais digitado pela pessoa (ver `lerValorEmReais`); vazio ou ilegivel -> null ou NaN
+export const lerTroco = lerValorEmReais
 
 // A PRIMEIRA pendencia encontrada vira a mensagem acima do botao, e o botao fica desabilitado.
 export function primeiraPendencia(itens: readonly ItemDoCarrinho[], formulario: FormularioDoPedido): string | null {
