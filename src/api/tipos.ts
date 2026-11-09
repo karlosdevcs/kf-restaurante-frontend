@@ -93,6 +93,7 @@ export interface Cardapio {
   id: number
   dataPublicacao: string // YYYY-MM-DD
   situacao: SituacaoCardapio
+  atualizadoEm: string // UTC: quando as opcoes mudaram pela ultima vez
   opcoes: Opcao[]
 }
 

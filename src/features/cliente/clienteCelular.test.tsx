@@ -107,7 +107,7 @@ describe('cardapio (tela 1)', () => {
   })
 
   it('cardapio encerrado: faixa propria e nada de pedir', async () => {
-    servirCliente({ cardapio: { id: 5, dataPublicacao: '2026-11-08', situacao: 'Fechado', opcoes: OPCOES } })
+    servirCliente({ cardapio: { id: 5, dataPublicacao: '2026-11-08', situacao: 'Fechado', atualizadoEm: '2026-11-08T12:00:00Z', opcoes: OPCOES } })
     await abrirCardapio()
 
     expect(screen.getByText('O cardápio de hoje foi encerrado. Você pode ver o que teve, mas não consegue pedir.')).toBeInTheDocument()
@@ -125,7 +125,7 @@ describe('cardapio (tela 1)', () => {
   })
 
   it('cardapio sem nenhum componente: mesma mensagem do estado sem cardapio', async () => {
-    servirCliente({ cardapio: { id: 5, dataPublicacao: '2026-11-08', situacao: 'Publicado', opcoes: OPCOES.filter((o) => o.categoria === 'Bebida') } })
+    servirCliente({ cardapio: { id: 5, dataPublicacao: '2026-11-08', situacao: 'Publicado', atualizadoEm: '2026-11-08T12:00:00Z', opcoes: OPCOES.filter((o) => o.categoria === 'Bebida') } })
     renderizarApp('/')
 
     expect(await screen.findByText('A loja ainda não publicou o cardápio de hoje')).toBeInTheDocument()
@@ -422,6 +422,7 @@ describe('meu pedido e confirmacao (telas 3 e 4)', () => {
       id: 5,
       dataPublicacao: '2026-11-08',
       situacao: 'Publicado',
+      atualizadoEm: '2026-11-08T12:00:00Z',
       opcoes: OPCOES.map((o) => (o.id === 9 ? { ...o, esgotado: true } : o)),
     }
     act(() => {

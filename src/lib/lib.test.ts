@@ -1,5 +1,5 @@
 import { categoriaInfo, ehComponenteDeMarmita, ordenarCategoriasDeComponente } from './categoriaConfig'
-import { formatBRL, formatDataCabecalho, formatDataIso, formatHora, formatTelefone, formatWhatsAppLoja, hojeEmBrasilia, iniciais, lerUtc, pluralizar, rotuloPagamento, somenteDigitos } from './formatar'
+import { formatBRL, formatDataCabecalho, formatDataIso, formatHora, formatTelefone, formatWhatsAppLoja, hojeEmBrasilia, iniciais, lerUtc, pluralizar, rotuloDeAtualizacao, rotuloPagamento, somenteDigitos } from './formatar'
 import { contarPorStatus, filtrarPorStatus, infoDoStatus } from './statusPedido'
 import type { PedidoResumo } from '../api/tipos'
 
@@ -204,5 +204,22 @@ describe('status do pedido', () => {
 
   it('lista vazia nao quebra os contadores', () => {
     expect(contarPorStatus([])).toEqual({ todos: 0, enviado: 0, naoEnviado: 0 })
+  })
+})
+
+describe('rotuloDeAtualizacao', () => {
+  const agora = new Date('2026-11-09T18:00:00Z') // 15:00 em Brasilia
+
+  it('no mesmo dia de Brasilia: "hoje as HH:mm"', () => {
+    expect(rotuloDeAtualizacao('2026-11-09T17:35:00Z', agora)).toBe('hoje às 14:35')
+  })
+
+  it('outro dia: "dd/MM as HH:mm"', () => {
+    expect(rotuloDeAtualizacao('2026-11-08T17:35:00Z', agora)).toBe('08/11 às 14:35')
+  })
+
+  it('usa o dia de Brasilia, nao o de UTC (01:30 UTC ainda e a noite do dia anterior)', () => {
+    expect(rotuloDeAtualizacao('2026-11-10T01:30:00Z', new Date('2026-11-10T02:00:00Z'))).toBe('hoje às 22:30') // 23:00 do dia 9 em Brasilia
+    expect(rotuloDeAtualizacao('2026-11-10T01:30:00Z', new Date('2026-11-10T12:00:00Z'))).toBe('09/11 às 22:30')
   })
 })

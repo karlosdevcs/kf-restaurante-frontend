@@ -61,7 +61,7 @@ export function servirLoja(sobrescrever: Partial<CenarioDaLoja> = {}): CenarioDa
   const cenario: CenarioDaLoja = {
     lista: [RESUMO_NAO_ENVIADO, RESUMO_ENVIADO],
     restaurante: { aberto: true, whatsApp: '5531999999999' },
-    cardapio: { id: 5, dataPublicacao: '2026-11-08', situacao: 'Publicado', opcoes: OPCOES.map((o: Opcao) => ({ ...o })) },
+    cardapio: { id: 5, dataPublicacao: '2026-11-08', situacao: 'Publicado', atualizadoEm: '2026-11-08T12:00:00Z', opcoes: OPCOES.map((o: Opcao) => ({ ...o })) },
     chamadas: { lista: 0, detalhes: {}, esgotados: [], restaurante: [], whatsapp: [] },
     ...sobrescrever,
   }

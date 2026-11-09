@@ -17,7 +17,7 @@ export interface CenarioDoCardapio {
 }
 
 export function cardapioDeTeste(situacao: Cardapio['situacao'], id = 7, opcoesIds: number[] = [1, 3, 7]): Cardapio {
-  return { id, dataPublicacao: hojeEmBrasilia(), situacao, opcoes: OPCOES.filter((o) => opcoesIds.includes(o.id)) }
+  return { id, dataPublicacao: hojeEmBrasilia(), situacao, atualizadoEm: new Date().toISOString(), opcoes: OPCOES.filter((o) => opcoesIds.includes(o.id)) }
 }
 
 // Handlers do painel de cardapio: GET /opcoes, GET /cardapios/hoje (so publicado ou fechado), GET /cardapios/{id},
@@ -38,7 +38,10 @@ export function servirCardapioDoPainel(sobrescrever: Partial<CenarioDoCardapio> 
       cenario.chamadas.alteradas.push({ id, opcoesIds })
       if (cenario.recusarAlteracao) return problema(cenario.recusarAlteracao.status, cenario.recusarAlteracao.detail)
       if (!cenario.cardapio) return naoEncontrado()
-      if (cenario.cardapio.situacao !== 'Rascunho') return problema(400, 'Só é possível trocar as opções de um cardápio em rascunho.')
+      if (cenario.cardapio.situacao === 'Fechado') return problema(400, 'O cardápio está fechado. Reabra o cardápio para mudar as opções.')
+      if (cenario.cardapio.situacao === 'Publicado' && cenario.cardapio.opcoes.some((atual) => !opcoesIds.includes(atual.id))) {
+        return problema(400, 'Um cardápio publicado só aceita opções novas. Para tirar um item hoje, marque como esgotado.')
+      }
       cenario.cardapio = { ...cenario.cardapio, opcoes: OPCOES.filter((o) => opcoesIds.includes(o.id)) }
       return HttpResponse.json(cenario.cardapio)
     }),

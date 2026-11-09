@@ -36,6 +36,16 @@ export function formatDataCabecalho(data: Date = new Date()): string {
   return new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: FUSO }).format(data)
 }
 
+// "hoje às 14:35" ou "08/11 às 14:35" (dia de Brasilia), para "atualizado ..." no painel
+export function rotuloDeAtualizacao(isoUtc: string, agora: Date = new Date()): string {
+  const data = lerUtc(isoUtc)
+  const diaDoEvento = hojeEmBrasilia(data)
+  const hora = formatHora(isoUtc)
+  if (diaDoEvento === hojeEmBrasilia(agora)) return `hoje às ${hora}`
+  const [, mes, dia] = diaDoEvento.split('-')
+  return `${dia}/${mes} às ${hora}`
+}
+
 // "2026-11-08" (dataPublicacao) -> "08/11/2026"
 export function formatDataIso(dataIso: string): string {
   const [ano, mes, dia] = dataIso.slice(0, 10).split('-')

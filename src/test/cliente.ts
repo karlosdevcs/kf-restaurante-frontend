@@ -79,7 +79,7 @@ export function pedidoDeResposta(extra: Partial<Pedido> = {}): Pedido {
 export function servirCliente(sobrescrever: Partial<CenarioDoCliente> = {}): CenarioDoCliente {
   const cenario: CenarioDoCliente = {
     restaurante: { aberto: true, whatsApp: '5531999999999' },
-    cardapio: { id: 5, dataPublicacao: '2026-11-08', situacao: 'Publicado', opcoes: OPCOES },
+    cardapio: { id: 5, dataPublicacao: '2026-11-08', situacao: 'Publicado', atualizadoEm: '2026-11-08T12:00:00Z', opcoes: OPCOES },
     tamanhos: TAMANHOS,
     falhar: false,
     chamadas: { restaurante: 0, cardapio: 0, pedidos: [], enviados: [] },

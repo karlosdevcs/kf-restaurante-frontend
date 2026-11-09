@@ -33,17 +33,6 @@ describe('estado 1: sem cardapio de hoje', () => {
     expect(screen.queryByText('Rascunho')).not.toBeInTheDocument()
   })
 
-  it('cada opcao mostra a categoria e, se tiver, o preco', async () => {
-    servirLoja()
-    servirCardapioDoPainel()
-    await abrirCardapio()
-    await screen.findByRole('checkbox', { name: 'Bebida 1' })
-
-    expect(screen.getByRole('checkbox', { name: 'Bebida 1' })).toHaveTextContent(/Bebida · R\$\s6,00/)
-    expect(screen.getByRole('checkbox', { name: 'Carne 1' })).toHaveTextContent('Carne')
-    expect(screen.getByRole('checkbox', { name: 'Carne 1' })).not.toHaveTextContent('R$')
-  })
-
   it('criar envia as opcoes marcadas e passa para Rascunho', async () => {
     servirLoja()
     const cenario = servirCardapioDoPainel()
@@ -83,6 +72,55 @@ describe('estado 1: sem cardapio de hoje', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Criar cardápio' }))
 
     expect(await screen.findByText('Escolha pelo menos uma opção.')).toBeInTheDocument()
+  })
+})
+
+describe('organizacao da tela', () => {
+  it('as opcoes aparecem agrupadas por categoria, na ordem das marmitas, com "x de y" e "Marcar todas"', async () => {
+    servirLoja()
+    servirCardapioDoPainel()
+    await abrirCardapio()
+    await screen.findAllByRole('checkbox')
+
+    const titulos = screen.getAllByRole('heading', { level: 2 }).map((titulo) => titulo.textContent)
+    expect(titulos).toEqual(['Carne', 'Acompanhamento', 'Guarnição', 'Salada', 'Bebida', 'Sobremesa'])
+
+    const carne = within(screen.getByRole('region', { name: 'Carne' }))
+    expect(carne.getByText('0 de 3')).toBeInTheDocument() // Carne 1, Carne 2 e Prato 1
+
+    await userEvent.click(carne.getByRole('button', { name: 'Marcar todas de Carne' }))
+
+    expect(carne.getByText('3 de 3')).toBeInTheDocument()
+    expect(screen.getByText('3 opções no cardápio')).toBeInTheDocument()
+    expect(carne.getByRole('button', { name: 'Limpar Carne' })).toBeInTheDocument()
+  })
+
+  it('a opcao mostra o preco, ou "so em marmita" quando e componente sem preco', async () => {
+    servirLoja()
+    servirCardapioDoPainel()
+    await abrirCardapio()
+    await screen.findAllByRole('checkbox')
+
+    expect(screen.getByRole('checkbox', { name: 'Bebida 1' })).toHaveTextContent(/R\$\s6,00/)
+    expect(screen.getByRole('checkbox', { name: 'Carne 1' })).toHaveTextContent('só em marmita')
+  })
+
+  it('mostra quando o cardapio foi atualizado pela ultima vez', async () => {
+    servirLoja()
+    const cardapio = cardapioDeTeste('Publicado')
+    servirCardapioDoPainel({ cardapio: { ...cardapio, atualizadoEm: new Date().toISOString() } })
+    await abrirCardapio()
+
+    expect(await screen.findByText(/^Atualizado hoje às \d{2}:\d{2}$/)).toBeInTheDocument()
+  })
+
+  it('cardapio de outro dia mostra a data', async () => {
+    servirLoja()
+    const cardapio = cardapioDeTeste('Fechado')
+    servirCardapioDoPainel({ cardapio: { ...cardapio, atualizadoEm: '2020-03-05T15:30:00Z' } })
+    await abrirCardapio()
+
+    expect(await screen.findByText('Atualizado 05/03 às 12:30')).toBeInTheDocument()
   })
 })
 
@@ -166,17 +204,62 @@ describe('estado 2: rascunho (agora o painel o enxerga e pode trocar as opcoes)'
 })
 
 describe('estados 3 e 4: publicado e fechado (opcoes so para leitura)', () => {
-  it('publicado: pilula, texto de apoio, "Fechar cardapio" e checkboxes desabilitados', async () => {
+  it('publicado: pilula, texto de apoio, "Fechar cardapio"; as opcoes que ja estao la ficam travadas e as outras podem entrar', async () => {
     servirLoja()
     servirCardapioDoPainel({ cardapio: cardapioDeTeste('Publicado') })
     await abrirCardapio()
 
     expect(await screen.findByText('Publicado')).toBeInTheDocument()
-    expect(screen.getByText('O cliente já está vendo. Pra tirar um item hoje, marque como esgotado na aba Hoje.')).toBeInTheDocument()
+    expect(screen.getByText('O cliente já está vendo.')).toBeInTheDocument()
+    expect(screen.getByText('Você pode incluir novas opções. Pra tirar um item hoje, marque como esgotado na aba Hoje.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Fechar cardápio' })).toBeInTheDocument()
-    const caixas = screen.getAllByRole('checkbox')
-    expect(caixas).toHaveLength(3)
-    for (const caixa of caixas) expect(caixa).toBeDisabled()
+    expect(await screen.findAllByRole('checkbox')).toHaveLength(9)
+    for (const nome of ['Carne 1', 'Acompanhamento 1', 'Bebida 1']) {
+      expect(screen.getByRole('checkbox', { name: nome })).toBeDisabled() // ja estao no cardapio: so saem pelo esgotado
+      expect(screen.getByRole('checkbox', { name: nome })).toHaveAttribute('aria-checked', 'true')
+    }
+    expect(screen.getAllByText('Já no cardápio')).toHaveLength(3)
+    expect(screen.getByRole('checkbox', { name: 'Salada 1' })).toBeEnabled()
+  })
+
+  it('publicado: incluir uma opcao nova (ex.: a carne de churrasco) chega ao cardapio sem fechar nem republicar', async () => {
+    servirLoja()
+    const cenario = servirCardapioDoPainel({ cardapio: cardapioDeTeste('Publicado') })
+    await abrirCardapio()
+    await screen.findAllByRole('checkbox')
+
+    await marcar('Salada 1')
+
+    expect(screen.getByText('4 opções no cardápio')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Fechar cardápio' })).toBeDisabled() // adiciona antes de fechar
+    expect(screen.getByText('As novas opções só aparecem para o cliente depois de adicionar.')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Adicionar ao cardápio' }))
+
+    await waitFor(() => expect(cenario.chamadas.alteradas).toEqual([{ id: 7, opcoesIds: [1, 3, 7, 6] }]))
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Adicionar ao cardápio' })).not.toBeInTheDocument())
+    expect(screen.getByText('Publicado')).toBeInTheDocument() // continua publicado
+    expect(cenario.chamadas.publicados).toEqual([])
+    expect(screen.getByRole('button', { name: 'Fechar cardápio' })).toBeEnabled()
+    expect(screen.getByRole('checkbox', { name: 'Salada 1' })).toBeDisabled() // agora tambem esta travada
+  })
+
+  it('publicado: "Marcar todas" so marca as que ainda nao estao no cardapio', async () => {
+    servirLoja()
+    servirCardapioDoPainel({ cardapio: cardapioDeTeste('Publicado', 7, [1]) })
+    await abrirCardapio()
+    await screen.findAllByRole('checkbox')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Marcar todas de Carne' }))
+
+    expect(screen.getByRole('checkbox', { name: 'Carne 2' })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('checkbox', { name: 'Prato 1' })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('button', { name: 'Limpar Carne' })).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Limpar Carne' }))
+
+    expect(screen.getByRole('checkbox', { name: 'Carne 1' })).toHaveAttribute('aria-checked', 'true') // a travada fica
+    expect(screen.getByRole('checkbox', { name: 'Carne 2' })).toHaveAttribute('aria-checked', 'false')
   })
 
   it('fechar passa para Fechado ("Encerrado por hoje.") e reabrir chama /publicar', async () => {
@@ -233,7 +316,7 @@ describe('celular', () => {
     expect(await screen.findByText('3 opções')).toBeInTheDocument()
     expect(screen.queryByText('3 opções no cardápio')).not.toBeInTheDocument()
     const botao = screen.getByRole('button', { name: 'Fechar cardápio' })
-    expect(botao.closest('div')?.className).toContain('sticky')
-    await waitFor(() => expect(within(screen.getByRole('list', { name: 'Opções do cardápio' })).getAllByRole('checkbox')).toHaveLength(3))
+    expect(botao.closest('.sticky')).not.toBeNull()
+    await waitFor(() => expect(screen.getAllByRole('checkbox')).toHaveLength(9))
   })
 })
