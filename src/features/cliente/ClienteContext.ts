@@ -5,7 +5,8 @@ import type { FormularioDoPedido } from '../../lib/pedidoCliente'
 
 export interface ValorDoCliente {
   itens: ItemDoCarrinho[]
-  adicionarMarmita: (tamanho: { id: number; nome: string; preco: number }, componentesIds: number[]) => void
+  /** `quantidade` comeca em 1; no computador o stepper do produto pode pedir mais */
+  adicionarMarmita: (tamanho: { id: number; nome: string; preco: number }, componentesIds: number[], quantidade?: number) => void
   adicionarAvulso: (opcao: { id: number; nome: string; preco: number }) => void
   /** 0 remove a linha */
   mudarQuantidade: (chave: string, quantidade: number) => void

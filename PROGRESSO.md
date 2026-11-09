@@ -8,7 +8,7 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 
 ## Fase atual
 
-**Fase 5: cliente desktop** (em andamento)
+**Fase 6: loja, casca e aba Pedidos** (em andamento)
 
 ## Fases concluídas
 
@@ -17,7 +17,8 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 | 1. Projeto base | `afbc430` | Vite, TypeScript strict, Tailwind v4 com tokens, Inter auto-hospedada, rotas vazias (`/loja/*` lazy), client de API com `ProblemDetails`/401/403, 1 arquivo por recurso (33 rotas), TanStack Query, Vitest + MSW (14 testes), `.env.example` |
 | 2. Átomos e catálogo `/_ui` | `1c56700` | 20 átomos em `components/ui/` com as medidas da seção 8 (Logo, Button/LinkButton, FilterPill, TopNavPill, SizeButton, ChoiceButton, SizeCard, IngredientTile, Stepper, LineStepper, Field/PasswordField/TextAreaField, ListCheckbox, Banner, Chip, Dialog, ClientStatusBadge, OrderStatusPill, StatusButton, AvailabilityToggle, Tabs, BottomTabBar, MarmitaIllustration), ícones SVG, `lib/` (categoriaConfig, formatar, statusPedido, useIsDesktop), catálogo `/_ui` só em dev, 120 testes |
 | 3. Autenticação | `b9eaf34` | `AuthProvider` (só dentro de `/loja`), login `/loja/entrar`, sessão em `sessionStorage`, guardas `RequerSessao`/`RequerAba`, `GET /auth/eu` (foco, 60 s, após 403), expiração por horário, `UserMenu`, `LojaLayout` com abas por permissão, `SemAcesso`, `ContaPage` (trocar senha), `lib/permissoes.ts`, hooks `useSessao`/`usePermissao`/`usePermissoes`/`useEhGestor` e `<Pode>`; testes 7, 8 e 9 (33 novos, 153 no total) |
-| 4. Cliente celular | (hash no commit seguinte) | Telas 1 a 4 com dados reais (`CardapioMobile`, `MontarMobile`, `PedidoMobile`, `ConfirmacaoPage`), carrinho e formulário em Context + reducer (`ClienteProvider`), `useDadosDoCliente` (restaurante, cardápio de hoje e tamanhos; reconsulta a cada 60 s e no foco), `useMontagem`, `useFinalizarPedido`, `FormularioDoPedido` e `LinhaDoCarrinho` (já compartilhados com a fase 5), regras puras em `lib/regrasMarmita`, `lib/carrinho` e `lib/pedidoCliente`; testes 1, 2, 3, 11 e 12 (58 novos, 211 no total) |
+| 4. Cliente celular | `9dc2b4f` | Telas 1 a 4 com dados reais (`CardapioMobile`, `MontarMobile`, `PedidoMobile`, `ConfirmacaoPage`), carrinho e formulário em Context + reducer (`ClienteProvider`), `useDadosDoCliente` (restaurante, cardápio de hoje e tamanhos; reconsulta a cada 60 s e no foco), `useMontagem`, `useFinalizarPedido`, `FormularioDoPedido` e `LinhaDoCarrinho` (já compartilhados com a fase 5), regras puras em `lib/regrasMarmita`, `lib/carrinho` e `lib/pedidoCliente`; testes 1, 2, 3, 11 e 12 (58 novos, 211 no total) |
+| 5. Cliente desktop | (hash no commit seguinte) | `PaginaDesktop` (filtros, produto, "Pra acompanhar" e carrinho lateral com o mesmo `FormularioDoPedido` do celular, "Confirmar pedido"), escolha do layout por `useIsDesktop` em `PaginaInicial`, `/montar/:id` vira `/?tamanho=:id` e `/pedido` volta a `/` no computador, confirmação centralizada (max 680) com os botões no corpo; 13 testes novos (224 no total) |
 
 ## Divergências encontradas (spec x código)
 
@@ -76,11 +77,15 @@ Decisões marcadas como "decisão minha" na spec seguem o padrão que a própria
 | 31 | A linha do carrinho guarda nome e preço do momento em que foi adicionada; "acabou" é calculado ao vivo. Componente que saiu do cardápio conta como esgotado | A spec 9.1 pede preço unitário guardado; a API recalcula o total, então o front só avisa |
 | 32 | Com item esgotado no carrinho, a mensagem acima do botão é "Remova os itens que acabaram" (além do texto da linha) | A spec só manda desabilitar o botão; sem mensagem o botão desabilitado ficaria sem explicação |
 | 33 | `staleTime: 0` nas consultas de restaurante e cardápio | O padrão do `QueryClient` (15 s) engolia a reconsulta ao voltar o foco, que a spec 9.1 exige |
-| 34 | Enquanto a fase 5 não chega, `/` no computador mostra o layout do celular (`PaginaInicial`) | Evita deixar a rota vazia; a fase 5 troca por página única |
+| 34 | (superada na fase 5) `/` no computador mostrava o layout do celular até a página única existir | Evitou deixar a rota vazia entre as fases |
 | 35 | Loja fechada ou cardápio encerrado: tiles da montagem ficam bloqueados e `SizeCard` ganhou `desabilitado` (mesmo visual, sem navegar) | A seção 14 manda desabilitar adicionar, montar e finalizar |
 | 36 | "Tamanho do meio" é o índice `floor((n - 1) / 2)` (n = 3 dá o segundo; n = 1 ou 2 dá o primeiro) | A spec só define 3 ou menos; o resto generaliza sem mudar esses casos |
 | 37 | O telefone vai para a API só com dígitos | A API aceita com ou sem máscara; só dígitos evita surpresa |
 | 38 | Nos testes, o `QueryClient` não repete falhas (`retry: false`) | A repetição de 1 s do app atrasaria cada teste de erro; o comportamento do app não muda |
+| 39 | Os `TopNavPill` do cabeçalho do computador rolam até as seções "Marmita", "Pra acompanhar" e "Meu pedido" (a spec não diz quais são os itens) | É a navegação mais útil numa página única; a pílula ativa é a última tocada |
+| 40 | O stepper de quantidade do produto no computador cria UMA linha de marmita com essa quantidade (`adicionarMarmita(..., quantidade)`) | A spec 9.1 diz que o item de marmita tem quantidade; o botão "Adicionar" mostra o preço já multiplicado |
+| 41 | No carrinho lateral aparece a mesma mensagem de pendência do celular, acima de "Confirmar pedido" | O botão fica desabilitado quando falta dado; sem a frase a pessoa não saberia o que falta |
+| 42 | Os ingredientes do computador não são agrupados por categoria (um bloco só, filtrado pela pílula), como a spec 9.2 descreve; o limite por categoria continua valendo e só aparece no contador total | A spec só pede o grupo "até N" no celular (tela 2) |
 
 ## Riscos e pendências de entrega
 

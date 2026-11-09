@@ -27,7 +27,7 @@ export interface ItemAvulso {
 export type ItemDoCarrinho = ItemMarmita | ItemAvulso
 
 export type AcaoDoCarrinho =
-  | { tipo: 'adicionar-marmita'; chave: string; tamanho: { id: number; nome: string; preco: number }; componentesIds: number[] }
+  | { tipo: 'adicionar-marmita'; chave: string; tamanho: { id: number; nome: string; preco: number }; componentesIds: number[]; quantidade?: number }
   | { tipo: 'adicionar-avulso'; opcao: { id: number; nome: string; preco: number } }
   | { tipo: 'mudar-quantidade'; chave: string; quantidade: number } // 0 (ou menos) remove a linha
   | { tipo: 'limpar' }
@@ -43,7 +43,7 @@ export function carrinhoReducer(itens: ItemDoCarrinho[], acao: AcaoDoCarrinho): 
           tamanhoId: acao.tamanho.id,
           nomeDoTamanho: acao.tamanho.nome,
           componentesIds: [...acao.componentesIds],
-          quantidade: 1,
+          quantidade: Math.max(1, acao.quantidade ?? 1),
           precoUnitario: acao.tamanho.preco,
         },
       ]

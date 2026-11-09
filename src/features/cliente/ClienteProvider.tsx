@@ -13,9 +13,9 @@ export function ClienteProvider({ children }: { children: ReactNode }) {
   const [pedidoConfirmado, setPedidoConfirmado] = useState<Pedido | null>(() => lerUltimoPedido())
   const contador = useRef(0)
 
-  const adicionarMarmita = useCallback<ValorDoCliente['adicionarMarmita']>((tamanho, componentesIds) => {
+  const adicionarMarmita = useCallback<ValorDoCliente['adicionarMarmita']>((tamanho, componentesIds, quantidade) => {
     contador.current += 1
-    despachar({ tipo: 'adicionar-marmita', chave: `m-${contador.current}`, tamanho, componentesIds })
+    despachar({ tipo: 'adicionar-marmita', chave: `m-${contador.current}`, tamanho, componentesIds, quantidade })
   }, [])
 
   const adicionarAvulso = useCallback<ValorDoCliente['adicionarAvulso']>((opcao) => despachar({ tipo: 'adicionar-avulso', opcao }), [])
