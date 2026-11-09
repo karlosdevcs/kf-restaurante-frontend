@@ -11,7 +11,21 @@ const rotaDaLoja: RouteObject = {
   },
 }
 
-export const rotas: RouteObject[] = [...rotasDoCliente, rotaDaLoja, { path: '*', element: <NaoEncontrada /> }]
+// Catalogo interno de componentes: SO em desenvolvimento. Em producao esta condicao vira `false` e o
+// bundler descarta a rota junto com o codigo do catalogo.
+const rotasDeDesenvolvimento: RouteObject[] = import.meta.env.DEV
+  ? [
+      {
+        path: '/_ui',
+        lazy: async () => {
+          const { CatalogoUi } = await import('./features/catalogo/CatalogoUi')
+          return { Component: CatalogoUi }
+        },
+      },
+    ]
+  : []
+
+export const rotas: RouteObject[] = [...rotasDoCliente, rotaDaLoja, ...rotasDeDesenvolvimento, { path: '*', element: <NaoEncontrada /> }]
 
 export function criarRoteador() {
   return createBrowserRouter(rotas)

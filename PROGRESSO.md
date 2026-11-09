@@ -8,13 +8,14 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 
 ## Fase atual
 
-**Fase 2: átomos de `components/ui/` e catálogo `/_ui`** (em andamento)
+**Fase 3: autenticação** (em andamento)
 
 ## Fases concluídas
 
 | Fase | Commit | O que entrou |
 |---|---|---|
-| 1. Projeto base | (hash no commit seguinte) | Vite, TypeScript strict, Tailwind v4 com tokens, Inter auto-hospedada, rotas vazias (`/loja/*` lazy), client de API com `ProblemDetails`/401/403, 1 arquivo por recurso (33 rotas), TanStack Query, Vitest + MSW (14 testes), `.env.example` |
+| 1. Projeto base | `afbc430` | Vite, TypeScript strict, Tailwind v4 com tokens, Inter auto-hospedada, rotas vazias (`/loja/*` lazy), client de API com `ProblemDetails`/401/403, 1 arquivo por recurso (33 rotas), TanStack Query, Vitest + MSW (14 testes), `.env.example` |
+| 2. Átomos e catálogo `/_ui` | (hash no commit seguinte) | 20 átomos em `components/ui/` com as medidas da seção 8 (Logo, Button/LinkButton, FilterPill, TopNavPill, SizeButton, ChoiceButton, SizeCard, IngredientTile, Stepper, LineStepper, Field/PasswordField/TextAreaField, ListCheckbox, Banner, Chip, Dialog, ClientStatusBadge, OrderStatusPill, StatusButton, AvailabilityToggle, Tabs, BottomTabBar, MarmitaIllustration), ícones SVG, `lib/` (categoriaConfig, formatar, statusPedido, useIsDesktop), catálogo `/_ui` só em dev, 120 testes |
 
 ## Divergências encontradas (spec x código)
 
@@ -52,6 +53,13 @@ Decisões marcadas como "decisão minha" na spec seguem o padrão que a própria
 | 10 | O 404 de `GET /cardapios/hoje` vira `null` na camada de API | A API devolve 404 tanto para "não existe" quanto para "rascunho"; para o cliente, as duas coisas são "ainda não publicado" |
 | 11 | Enums da API aceitam valor desconhecido (`'Carne' \| (string & {})`) | A spec manda tolerar valores novos sem quebrar a tela |
 | 12 | `src/features/Pendente.tsx` é uma tela provisória das fases 1 a 3 | Rotas vazias da fase 1; será removida quando cada rota ganhar sua tela |
+| 13 | `Dialog` é um componente próprio (portal + `role="dialog"` + foco preso + Esc + devolução do foco), não o `<dialog>` nativo | O `showModal()` do `<dialog>` não existe no jsdom, então não seria testável; o componente próprio também permite a folha de rodapé no celular |
+| 14 | Área de toque de 44px dos controles menores via utilitários CSS `toque-v` e `toque-q` (pseudo-elemento invisível), sem mudar o desenho | A seção 15 exige 44px de toque, mas as medidas da seção 8 são menores (34 a 40). Os controles de 24 a 30px (steppers) usam `toque-q` |
+| 15 | Token novo `--checkbox-disabled` (`#D7DADF`) | A seção 8 cita esse hex solto para o checkbox desabilitado; a regra é "todo hex sai dos tokens" |
+| 16 | `categoriaConfig` ganhou o campo `plural` (`carnes`, `guarnições`...) | A seção 12.12 pede "1 carne / 2 carnes", e o plural de "guarnição" é irregular; somar "s" geraria "guarnições" errado |
+| 17 | `Tabs` e `BottomTabBar` já existem como átomos (a fase 6 só os liga às permissões e às rotas) | A seção 8 os descreve entre os componentes base |
+| 18 | O "hoje" do front usa o fuso `America/Sao_Paulo` (`hojeEmBrasilia`), alinhado ao da API | A API decide o "hoje" em Brasília; um `new Date()` em UTC erraria depois das 21h |
+| 19 | Um teste de rotas pegou um bug real do catálogo (um `MemoryRouter` aninhado dentro do roteador do app, que o React Router proíbe). Corrigido | Registro porque o build e o lint passavam: só o teste de renderização mostrou |
 
 ## Riscos e pendências de entrega
 

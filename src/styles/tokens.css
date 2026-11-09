@@ -43,6 +43,7 @@
   --illustration-bg: #f7f2ec;
   --dash: #dee1e6;
   --overlay: rgb(22 24 29 / 0.45);
+  --checkbox-disabled: #d7dadf;
 
   /* cores de categoria: bolinha ou icone no lugar de foto */
   --cat-carne: #f3d8cf;
@@ -93,6 +94,7 @@
   --color-illustration-bg: var(--illustration-bg);
   --color-dash: var(--dash);
   --color-overlay: var(--overlay);
+  --color-checkbox-disabled: var(--checkbox-disabled);
 
   --color-cat-carne: var(--cat-carne);
   --color-cat-acompanhamento: var(--cat-acompanhamento);
