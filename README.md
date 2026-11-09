@@ -8,6 +8,8 @@ Oi, eu sou o Karlos e este é o frontend do **KF Restaurante**, um sistema de pe
 
 O backend (.NET 8) fica em outro repositório: [KFRestaurante](https://github.com/karlosdevcs/KFRestaurante). Este aqui é a interface em React que conversa com ele.
 
+> 🤖 **Transparência:** o KF Restaurante é um projeto de estudo. A base do backend eu escrevi à mão, aprendendo .NET; o resto do backend e **todo este frontend foram feitos com IA**, seguindo **Spec-Driven Development**, o método que pratiquei no desafio Halloween 2026 do balta.io. Os detalhes estão em [Sobre este projeto](#-sobre-este-projeto-e-como-foi-construído).
+
 <p>
   <img alt="React" src="https://img.shields.io/badge/React-18-20232A?logo=react&logoColor=61DAFB">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white">
@@ -27,10 +29,28 @@ O backend (.NET 8) fica em outro repositório: [KFRestaurante](https://github.co
   <img src="docs/img/cliente-celular.png" alt="Fluxo do cliente no celular: cardápio, montar a marmita e pedido confirmado" width="100%">
 </p>
 
+### No computador, o pedido fica numa coluna ao lado
+
+<p align="center">
+  <img src="docs/img/cliente-desktop.png" alt="Tela do cliente no computador, com o carrinho lateral" width="100%">
+</p>
+
 ### A loja acompanha os pedidos em tempo quase real
 
 <p align="center">
   <img src="docs/img/loja-desktop.png" alt="Painel da loja no computador, com a tabela de pedidos e a lista de itens esgotados" width="100%">
+</p>
+
+### O painel também funciona no celular
+
+<p align="center">
+  <img src="docs/img/loja-celular.png" alt="Painel da loja no celular: pedidos, hoje e usuários" width="100%">
+</p>
+
+### Login por pessoa
+
+<p align="center">
+  <img src="docs/img/login.png" alt="Tela de login da área da loja" width="70%">
 </p>
 
 > As telas acima usam dados de exemplo.
@@ -88,6 +108,8 @@ A loja exige login, e o que cada pessoa vê depende das **permissões ligadas pa
 | *Papel Dono ou Superuser* | Aba **Usuários** |
 
 Ao abrir o painel, o frontend chama `GET /auth/eu` para saber quem é a pessoa e quais abas mostrar. As abas e os botões que ela não pode usar **nem aparecem**. Quem protege de verdade é a API: sem token ou sem a permissão, a chamada volta `401` ou `403`, e o frontend trata os dois.
+
+O login dura 12 horas, e depois é preciso entrar de novo.
 
 ---
 
@@ -164,8 +186,6 @@ Ao abrir o painel, o frontend chama `GET /auth/eu` para saber quem é a pessoa e
 | `npm run lint` | Análise estática |
 | `npm test` | Todos os testes |
 
-Em desenvolvimento existe também o catálogo de componentes em `/_ui`, que não entra no build de produção.
-
 ---
 
 ## 🗺️ Rotas
@@ -215,37 +235,32 @@ PROGRESSO.md       registro das fases, decisões e lacunas encontradas
 
 ---
 
-## ⚠️ Limitações conhecidas
+## 🛣️ Próximos passos
 
-- Sem refresh token: o login dura 12 horas e depois é preciso entrar de novo.
-- Sem exclusão de opções, tamanhos, cardápios e usuários (a API não tem esses endpoints, só desativar usuário).
-- Atualização dos pedidos por polling a cada 30 segundos, sem WebSocket e sem notificação.
-- Sem recuperação de senha por e-mail: quem gerencia a pessoa redefine a senha dela.
-- Sem foto de prato: as telas usam uma ilustração e cores por categoria.
-- Porção dupla de um componente (a API aceita) ainda não existe na interface.
+**Frontend**
+- Aviso de pedido novo na loja (hoje a lista se atualiza sozinha a cada 30 segundos)
+- Fotos dos pratos no lugar das ilustrações
+- Porção dupla de um componente, que a API já aceita
 
-### Lacunas do backend que encontrei
-
-Durante a construção, três pontos do backend ficaram sem solução limpa no frontend. Eu os contornei no front, registrei no [`PROGRESSO.md`](PROGRESSO.md) e depois corrigi no backend:
-
-1. **Cardápio em rascunho não era consultável pelo painel.** Agora a API tem `GET /cardapios/hoje/painel` e `PUT /cardapios/{id}/opcoes`, e o painel deixa ajustar as opções antes de publicar.
-2. **`GET /pedidos` devolvia só o resumo.** Agora a lista já traz os itens, e o painel não faz mais uma chamada por pedido.
-3. **Mensagens de `401` e `403` vinham só em inglês.** Agora a API manda o `detail` em português.
-
-Uma decisão que continua de propósito: o cliente não consegue recarregar o pedido pela API, porque `GET /pedidos/{id}` exige permissão (abri-lo deixaria qualquer pessoa ler pedidos de outras trocando o número na URL). A confirmação usa a resposta do `POST /pedidos`.
+**Backend** (pontos que o frontend pediu durante a construção)
+- Refresh token para a sessão passar das 12 horas
+- Recuperação de senha por e-mail
+- Exclusão de opções, tamanhos e cardápios
 
 ---
 
-## 🧭 Como foi construído
+## 🎯 Sobre este projeto e como foi construído
 
-Este projeto seguiu **desenvolvimento guiado por spec**:
+O KF Restaurante é um **projeto de estudo**: eu queria aprender .NET e backend de verdade, e ele virou também o meu portfólio. Por isso quero deixar claro o que eu escrevi e o que foi feito com ajuda de IA.
 
-1. Desenhei as telas como protótipo clicável, em celular e computador, e escolhi o estilo visual.
-2. Escrevi uma spec do frontend, dividida em partes: tokens de design, medidas de cada componente, regras de negócio, contrato real da API lido do código do backend e critérios de aceite.
-3. O Claude Code executou a spec em 11 fases, com um commit por fase e testes passando antes de seguir.
-4. Cada divergência entre a spec e o código, cada lacuna do backend e cada decisão técnica ficaram registradas em [`PROGRESSO.md`](PROGRESSO.md).
+| Parte | Como foi feita | O que tem nela |
+|---|---|---|
+| 🛠️ **Base do backend** | **À mão**, aprendendo cada peça. Estudei com um tutor de IA configurado para **não me dar código pronto**: eu escrevia, errava e ele apontava o porquê. Tudo o que está ao lado eu digitei e sei explicar | • **LINQ:** `Any`, `Find`, `Select` e lambdas. O `Select` devolve um `IQueryable` e a consulta só vai ao banco quando alguém percorre o resultado (execução adiada). O `Any` vira um `SELECT EXISTS`, que li no log do EF<br>• **Valores nulos:** `string?`, o `!` e a análise de fluxo do compilador, até zerar os warnings do projeto<br>• **Orientação a objetos:** construtores que validam, `private set`, `static`, interface como filtro de visão (`IPedivel`) e `record` para DTOs<br>• **Domínio rico:** `Opcao`, `TamanhoMarmita`, `Marmita`, `CardapioDoDia`, `Pedido`, `ItemDoPedido` e `Restaurante`, com a regra de negócio na classe e não no endpoint<br>• **Pedido como raiz do agregado:** só ele cria itens e aplica as regras do pedido<br>• **Foto, não referência:** o item do pedido guarda o nome e o preço do momento da compra, porque pedido é documento histórico. Mudar o preço amanhã não reescreve o total de ontem<br>• **EF Core com PostgreSQL:** chaves primárias, construtores privados, muitos-para-muitos com tabela de junção, índice único e um laço sobre o modelo para deixar tabelas e colunas em minúsculo<br>• **Ciclo objeto, banco, objeto:** o `Add` anota no change tracker, o `SaveChanges` executa dentro de uma transação (vi o rollback acontecer) e o `RETURNING id` devolve o id gerado<br>• **Migrations:** mudança de esquema só por migration, nunca `ALTER TABLE` na mão, e leitura antes de aplicar (a leitura pegou um erro de chave estrangeira)<br>• **Regra no banco e no endpoint:** índice único mais `Any`, para dar uma mensagem clara no caso comum<br>• **Web API:** injeção de dependência (entendendo por que um `new` no endpoint vazava conexões), user-secrets, status codes (`200`, `201` com `Location`, `404`, `409`), DTOs de entrada e saída com o método `De`, enums como texto e Swagger<br>• **No dia a dia:** stack trace lido de trás para a frente, debug e git entre duas máquinas, com commits `tipo: descrição` |
+| 🤖 **Backend ampliado** | **Spec-Driven Development**, com o Claude Code. Eu escolhi o que construir, e a IA implementou por fases, com a spec antes do código, uma fase por vez e um commit por fase | • Cardápio do dia, com rascunho, publicação e fechamento<br>• Pedidos com a mensagem e o link do WhatsApp gerados pela API<br>• Status do pedido (gerado e enviado)<br>• Login com JWT e permissões por usuário<br>• Erros centralizados em `ProblemDetails`<br>• Testes de domínio e de segurança das rotas (xUnit) |
+| 🤖 **Frontend** (este repositório) | **Spec-Driven Development**, com o Claude Code. Defini o design e a spec com apoio de IA (protótipo clicável, tokens, medidas, regras, critérios de aceite e o contrato lido do código do backend). A execução foi em 11 fases, e cada divergência, lacuna e decisão ficou registrada em [`PROGRESSO.md`](PROGRESSO.md) | • Área do cliente no celular e no computador, sem login<br>• Login, sessão e abas por permissão<br>• Painel da loja: pedidos, hoje, cardápio, cadastros e usuários<br>• Mais de 360 testes (Vitest, Testing Library e MSW)<br>• Verificado contra a API real, o que mostrou um bug de CSS que os testes não pegavam |
+| 📚 **De onde vem o método** | O **desafio Halloween 2026 do [balta.io](https://balta.io)**, em que pratiquei Spec-Driven Development de ponta a ponta, em três projetos | • **[Desafio 1: gerador de senhas](https://github.com/karlosdevcs/balta-desafio-halloween-2026-spec-driven-01):** escrevi à mão a constituição, a spec, o plano e as tarefas, e a IA implementou. Testes unitários e de integração<br>• **[Desafio 2: encurtador de URLs](https://github.com/karlosdevcs/balta-desafio-halloween-2026-spec-driven-02):** cada tarefa rastreada até o requisito que a originou, e contradições entre spec e plano achadas antes de codar. 114 testes<br>• **[Desafio 3: encurtador com SpecKit](https://github.com/karlosdevcs/balta-desafio-halloween-2026-spec-driven-03):** fluxo completo do SpecKit, com TDD. 58 testes e 93% de cobertura de linhas |
 
-A spec completa está em [`spec-frontend/`](spec-frontend/00-indice.md).
+Não escrevi à mão o frontend nem a parte ampliada do backend, e não vou fingir que escrevi. O que eu trago é o jeito de trabalhar com a IA como ferramenta de engenharia: a spec vem antes do código, o trabalho é dividido em tarefas pequenas, e o resultado é auditado. A spec completa do frontend está em [`spec-frontend/`](spec-frontend/00-indice.md).
 
 ---
 
