@@ -1,0 +1,61 @@
+/* Base global: tipografia, foco visivel, cursor e movimento reduzido (spec, seções 4 e 5). */
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: #fff;
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Foco visivel: anel de 2px "ink" com offset de 2px em todo elemento interativo. Nunca remover sem substituto. */
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  summary {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--subtle);
+  }
+
+  /* a seta nativa do campo numerico atrapalha o layout dos campos de valor */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    appearance: textfield;
+  }
+}
+
+/* Movimento: 150ms so em cor, borda e fundo (o padrao de transition-colors). Sem animacao de entrada. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

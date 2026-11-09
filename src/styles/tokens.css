@@ -1,0 +1,120 @@
+/*
+ * Design tokens do Conceito 2 (spec, seção 4).
+ * Nada de cor solta nos componentes: todo hex usado na interface sai daqui.
+ * As variáveis ficam em :root e o bloco @theme inline as expõe ao Tailwind (bg-brand, text-ink, rounded-card...).
+ */
+
+:root {
+  --brand: #d6381f;
+  --brand-strong: #b3241b;
+  --brand-hover: #ae2c18;
+  --brand-tint: #fceae6;
+
+  --ink: #16181d;
+  --ink-hover: #2a2d35;
+  --muted: #6b707a;
+  --subtle: #8a8f98;
+
+  --line: #e7e9ed;
+  --line-soft: #eef0f3;
+  --line-row: #f0f1f3;
+  --line-row-web: #f3f4f6;
+
+  --surface: #f7f8fa;
+  --canvas: #f1f2f5;
+
+  --disabled-bg: #eef0f3;
+  --disabled-fg: #b9bec7;
+  --blocked: #c2c6cc;
+
+  --success: #1e8a4c;
+  --success-text: #187a42;
+  --success-bg: #eaf7ee;
+  --success-line: #bfd9c8;
+
+  --warn-bg: #fcecc6;
+  --warn-text: #8a5a00;
+  --warn-row: #fffbf0;
+
+  --status-neutral-bg: #f1f2f5;
+  --status-neutral-fg: #4a525e;
+
+  --tile-selected-bg: #fbf2e4;
+  --illustration-bg: #f7f2ec;
+  --dash: #dee1e6;
+  --overlay: rgb(22 24 29 / 0.45);
+
+  /* cores de categoria: bolinha ou icone no lugar de foto */
+  --cat-carne: #f3d8cf;
+  --cat-acompanhamento: #fbe7b8;
+  --cat-guarnicao: #e6d9c2;
+  --cat-salada: #d8e8cb;
+  --cat-bebida: #d7e6f2;
+  --cat-sobremesa: #f2d9e8;
+  --cat-desconhecida: #eef0f3;
+}
+
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-tint: var(--brand-tint);
+
+  --color-ink: var(--ink);
+  --color-ink-hover: var(--ink-hover);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-line-row: var(--line-row);
+  --color-line-row-web: var(--line-row-web);
+
+  --color-surface: var(--surface);
+  --color-canvas: var(--canvas);
+
+  --color-disabled-bg: var(--disabled-bg);
+  --color-disabled-fg: var(--disabled-fg);
+  --color-blocked: var(--blocked);
+
+  --color-success: var(--success);
+  --color-success-text: var(--success-text);
+  --color-success-bg: var(--success-bg);
+  --color-success-line: var(--success-line);
+
+  --color-warn-bg: var(--warn-bg);
+  --color-warn-text: var(--warn-text);
+  --color-warn-row: var(--warn-row);
+
+  --color-status-neutral-bg: var(--status-neutral-bg);
+  --color-status-neutral-fg: var(--status-neutral-fg);
+
+  --color-tile-selected-bg: var(--tile-selected-bg);
+  --color-illustration-bg: var(--illustration-bg);
+  --color-dash: var(--dash);
+  --color-overlay: var(--overlay);
+
+  --color-cat-carne: var(--cat-carne);
+  --color-cat-acompanhamento: var(--cat-acompanhamento);
+  --color-cat-guarnicao: var(--cat-guarnicao);
+  --color-cat-salada: var(--cat-salada);
+  --color-cat-bebida: var(--cat-bebida);
+  --color-cat-sobremesa: var(--cat-sobremesa);
+  --color-cat-desconhecida: var(--cat-desconhecida);
+
+  /* raios (spec, seção 4) */
+  --radius-app: 28px;
+  --radius-ilustracao: 24px;
+  --radius-login: 28px;
+  --radius-dialogo: 20px;
+  --radius-cartao: 16px;
+  --radius-tile: 14px;
+  --radius-escolha: 12px;
+  --radius-tamanho: 10px;
+  --radius-pilula: 9999px;
+
+  /* a unica sombra do sistema: cartao grande do desktop do cliente e cartao de login */
+  --shadow-cartao: 0 20px 50px rgb(20 22 28 / 0.08);
+
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}

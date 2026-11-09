@@ -1,26 +1,33 @@
-import type { CardapioDoDia } from '../types/api'
-import { ApiError, requisitar } from './client'
+import { ehApiError, requisitar } from './client'
+import type { Cardapio, CriarCardapioRequest } from './tipos'
 
-// null = nao ha cardapio publicado (ou fechado) hoje. A API devolve 404 tambem para rascunho.
-export async function buscarCardapioHoje(): Promise<CardapioDoDia | null> {
+// ABERTO. A API devolve 404 quando nao ha cardapio hoje OU quando ele ainda e rascunho: para o cliente, as
+// duas coisas sao "ainda nao publicado". Aqui o 404 vira `null`; os demais erros continuam erros.
+export async function buscarCardapioHoje(sinal?: AbortSignal): Promise<Cardapio | null> {
   try {
-    return await requisitar<CardapioDoDia>('/cardapios/hoje')
+    return await requisitar<Cardapio>('/cardapios/hoje', { sinal })
   } catch (erro) {
-    if (erro instanceof ApiError && erro.status === 404) {
-      return null
-    }
+    if (ehApiError(erro) && erro.status === 404) return null
     throw erro
   }
 }
 
-export function criarCardapioHoje(opcoesIds: number[]): Promise<CardapioDoDia> {
-  return requisitar<CardapioDoDia>('/cardapios', { method: 'POST', body: { opcoesIds } })
+// GerenciarCardapio: le qualquer cardapio por id, inclusive rascunho (e o unico jeito de reencontrar um rascunho)
+export function buscarCardapio(id: number, sinal?: AbortSignal): Promise<Cardapio> {
+  return requisitar<Cardapio>(`/cardapios/${id}`, { autenticada: true, sinal })
 }
 
-export function publicarCardapio(id: number): Promise<CardapioDoDia> {
-  return requisitar<CardapioDoDia>(`/cardapios/${id}/publicar`, { method: 'POST' })
+// GerenciarCardapio: cria como rascunho. 409 se ja existe cardapio hoje.
+export function criarCardapio(dados: CriarCardapioRequest): Promise<Cardapio> {
+  return requisitar<Cardapio>('/cardapios', { metodo: 'POST', corpo: dados, autenticada: true })
 }
 
-export function fecharCardapio(id: number): Promise<CardapioDoDia> {
-  return requisitar<CardapioDoDia>(`/cardapios/${id}/fechar`, { method: 'POST' })
+// GerenciarCardapio: publicar tambem REABRE um cardapio fechado
+export function publicarCardapio(id: number): Promise<Cardapio> {
+  return requisitar<Cardapio>(`/cardapios/${id}/publicar`, { metodo: 'POST', autenticada: true })
+}
+
+// GerenciarCardapio
+export function fecharCardapio(id: number): Promise<Cardapio> {
+  return requisitar<Cardapio>(`/cardapios/${id}/fechar`, { metodo: 'POST', autenticada: true })
 }

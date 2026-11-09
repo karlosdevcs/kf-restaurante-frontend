@@ -1,7 +1,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_API_URL: string
+  /** Endereco da API, sem barra no final. Em producao, https (o token viaja no cabecalho). Publico: nunca segredo. */
+  readonly VITE_API_URL?: string
 }
 
 interface ImportMeta {
