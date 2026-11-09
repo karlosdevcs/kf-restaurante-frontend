@@ -8,7 +8,7 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 
 ## Fase atual
 
-**Fase 9: loja, aba Usuários** (em andamento)
+**Fase 10: estados de carregamento, vazio e erro, e acessibilidade** (em andamento)
 
 ## Fases concluídas
 
@@ -21,7 +21,8 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 | 5. Cliente desktop | `05506e3` | `PaginaDesktop` (filtros, produto, "Pra acompanhar" e carrinho lateral com o mesmo `FormularioDoPedido` do celular, "Confirmar pedido"), escolha do layout por `useIsDesktop` em `PaginaInicial`, `/montar/:id` vira `/?tamanho=:id` e `/pedido` volta a `/` no computador, confirmação centralizada (max 680) com os botões no corpo; 13 testes novos (224 no total) |
 | 6. Loja: casca e aba Pedidos | `7f55a5e` | `LojaLayout` com cabeçalho (Logo + "Painel da loja", `StatusButton` e `UserMenu`), abas por permissão e banner de erro de mutação (`AvisosDaLoja`); `PedidosPage` com filtros por contagem, tabela (computador) e cartões (celular), detalhe sob demanda com cache sem expiração, polling de 30 s, anúncio de pedido novo, "Chamar no WhatsApp"; coluna `AcabouAlgumaCoisa` (EsgotarOpcoes) com atualização otimista; testes 5 e 9 completos e o selo da loja; 25 testes novos (249 no total) |
 | 7. Loja: abas Hoje e Cardápio | `10170db` | `HojePage` (cartão de status com foco no WhatsApp quando abrir é recusado, cartão do WhatsApp com erro do 400 junto do campo, "Acabou alguma coisa?" em grade ou lista); `CardapioPage` com os 4 estados (sem cardápio, rascunho, publicado, fechado), descoberta do cardápio de hoje (GET /cardapios/hoje, depois o id do `localStorage`), 409 com a explicação do rascunho; teste 13 completo e a navegação do topo do computador conforme a seção 16.2; 30 testes novos (279 no total) |
-| 8. Loja: aba Cadastros | (hash no commit seguinte) | `CadastrosPage` (computador: Opções e Tamanhos lado a lado; celular: duas `ChoiceButton`), `OpcoesSecao` com tabela/linhas e formulário (regra do preço: Bebida e Sobremesa exigem, componente só com "Vender também avulsa"; 409 abaixo do Nome, 400 em Banner), `TamanhosSecao` com cartões, formulário e limites por categoria (`PUT /tamanhos/{id}/limites` substitui tudo); `lib/cadastros` e `lib/dinheiro`; 36 testes novos (315 no total) |
+| 8. Loja: aba Cadastros | `9913bf1` | `CadastrosPage` (computador: Opções e Tamanhos lado a lado; celular: duas `ChoiceButton`), `OpcoesSecao` com tabela/linhas e formulário (regra do preço: Bebida e Sobremesa exigem, componente só com "Vender também avulsa"; 409 abaixo do Nome, 400 em Banner), `TamanhosSecao` com cartões, formulário e limites por categoria (`PUT /tamanhos/{id}/limites` substitui tudo); `lib/cadastros` e `lib/dinheiro`; 36 testes novos (315 no total) |
+| 9. Loja: aba Usuários | (hash no commit seguinte) | `UsuariosPage` (tabela no computador, cartões no celular, marca "Você", só "Minha conta" na própria linha), formulários "Novo usuário" e "Editar" com a hierarquia espelhada (`lib/usuarios`: papéis que cada um cria, permissões que cada um concede, checkbox habilitado se quem edita tem a permissão ou o editado já a tinha), `Dialog` de desativar e de redefinir senha, ativar sem confirmação; teste 10 completo; 23 testes novos (338 no total); `Pendente.tsx` removido |
 
 ## Divergências encontradas (spec x código)
 
@@ -60,7 +61,7 @@ Decisões marcadas como "decisão minha" na spec seguem o padrão que a própria
 | 9 | O client de API não conhece sessão: expõe `configurarAuth({ obterToken, aoNaoAutenticado, aoProibido })`, e o `AuthProvider` (fase 3) se registra. Só chamadas com `autenticada: true` levam o token e acionam 401/403 | Mantém "o token só vai nas chamadas da loja" garantido num único lugar, com teste |
 | 10 | O 404 de `GET /cardapios/hoje` vira `null` na camada de API | A API devolve 404 tanto para "não existe" quanto para "rascunho"; para o cliente, as duas coisas são "ainda não publicado" |
 | 11 | Enums da API aceitam valor desconhecido (`'Carne' \| (string & {})`) | A spec manda tolerar valores novos sem quebrar a tela |
-| 12 | `src/features/Pendente.tsx` é uma tela provisória das fases 1 a 3 | Rotas vazias da fase 1; será removida quando cada rota ganhar sua tela |
+| 12 | `src/features/Pendente.tsx` foi uma tela provisória das fases 1 a 8 | Rotas vazias da fase 1. **Removida na fase 9**, quando a última rota ganhou tela |
 | 13 | `Dialog` é um componente próprio (portal + `role="dialog"` + foco preso + Esc + devolução do foco), não o `<dialog>` nativo | O `showModal()` do `<dialog>` não existe no jsdom, então não seria testável; o componente próprio também permite a folha de rodapé no celular |
 | 14 | Área de toque de 44px dos controles menores via utilitários CSS `toque-v` e `toque-q` (pseudo-elemento invisível), sem mudar o desenho | A seção 15 exige 44px de toque, mas as medidas da seção 8 são menores (34 a 40). Os controles de 24 a 30px (steppers) usam `toque-q` |
 | 15 | Token novo `--checkbox-disabled` (`#D7DADF`) | A seção 8 cita esse hex solto para o checkbox desabilitado; a regra é "todo hex sai dos tokens" |
@@ -107,6 +108,11 @@ Decisões marcadas como "decisão minha" na spec seguem o padrão que a própria
 | 56 | Nos formulários de cadastro o botão fica desabilitado até o formulário ser válido, e o erro de preço ou limite só aparece quando o campo tem texto | A spec manda desabilitar o botão; mostrar erro em campo vazio recém-aberto seria ruído |
 | 57 | No cartão do tamanho, limite 0 aparece como "Salada: não incluso" (a spec dá só o exemplo "Carne: até 2") | Mesma frase da tela de montagem do cliente |
 | 58 | Salvar uma opção também invalida as consultas do cardápio (`['cardapio']`) | O cardápio de hoje mostra nome, categoria e preço da opção |
+| 59 | Na edição de usuário, todas as seis permissões aparecem (as que ninguém pode acrescentar ficam desabilitadas); na criação, só as que quem cria possui | É a regra da seção 11.5: manter é sempre permitido, acrescentar exige ter |
+| 60 | Erro 403 de um formulário ou ação de usuários aparece só no banner global da área de conteúdo (do `AuthProvider`), não repetido no formulário | A seção 10.3 manda mostrar o 403 como banner e refazer `GET /auth/eu`; duplicar só poluiria a tela |
+| 61 | O `Dialog` de redefinir senha ganhou o texto "A conta também é destravada. A pessoa troca a senha depois, em Minha conta." | A spec só pede o campo e o botão; o texto diz o efeito antes de confirmar |
+| 62 | Nos testes, `asyncUtilTimeout` do Testing Library é 3 s | O primeiro teste de cada arquivo carrega a loja por import dinâmico e, com arquivos em paralelo, 1 s às vezes não bastava (testes intermitentes) |
+| 63 | Criar usuário sem permissões marcadas envia `permissoes: []`; Superuser sempre envia `[]` | A API ignora a lista de superuser (ele tem todas) |
 
 ## Riscos e pendências de entrega
 

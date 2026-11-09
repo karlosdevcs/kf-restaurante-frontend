@@ -2,16 +2,16 @@ import { Route, Routes } from 'react-router-dom'
 import { AuthProvider } from '../auth/AuthProvider'
 import { EntrarPage } from '../auth/EntrarPage'
 import { RequerAba, RequerSessao } from '../auth/Guardas'
-import { Pendente } from '../Pendente'
 import { ContaPage } from './ContaPage'
 import { CadastrosPage } from './cadastros/CadastrosPage'
 import { CardapioPage } from './cardapio/CardapioPage'
 import { HojePage } from './hoje/HojePage'
 import { IndiceDaLoja } from './IndiceDaLoja'
 import { PedidosPage } from './pedidos/PedidosPage'
+import { UsuariosPage } from './usuarios/UsuariosPage'
 
 // Todo o `/loja/*` e carregado sob demanda (code splitting): o cliente nao baixa o painel nem a logica de login.
-// O AuthProvider vive aqui dentro, so para a loja. A aba Usuarios entra na fase 9.
+// O AuthProvider vive aqui dentro, so para a loja. As abas de cada area ficam em pastas proprias (pedidos, hoje, cardapio, cadastros, usuarios).
 export function LojaApp() {
   return (
     <AuthProvider>
@@ -55,7 +55,7 @@ export function LojaApp() {
             path="usuarios"
             element={
               <RequerAba aba="usuarios">
-                <Pendente nome="Usuários" />
+                <UsuariosPage />
               </RequerAba>
             }
           />
