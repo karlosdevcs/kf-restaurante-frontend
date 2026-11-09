@@ -1,19 +1,63 @@
 import { Route, Routes } from 'react-router-dom'
+import { AuthProvider } from '../auth/AuthProvider'
+import { EntrarPage } from '../auth/EntrarPage'
+import { RequerAba, RequerSessao } from '../auth/Guardas'
 import { Pendente } from '../Pendente'
+import { ContaPage } from './ContaPage'
+import { IndiceDaLoja } from './IndiceDaLoja'
 
-// FASE 1: bloco da loja vazio. Todo o `/loja/*` e carregado sob demanda (code splitting): o cliente nao baixa
-// o painel nem a logica de login. Login e guardas entram na fase 3; abas nas fases 6 a 9.
+// Todo o `/loja/*` e carregado sob demanda (code splitting): o cliente nao baixa o painel nem a logica de login.
+// O AuthProvider vive aqui dentro, so para a loja. As telas das abas entram nas fases 6 a 9.
 export function LojaApp() {
   return (
-    <Routes>
-      <Route path="entrar" element={<Pendente nome="Entrar" />} />
-      <Route index element={<Pendente nome="Loja" />} />
-      <Route path="pedidos" element={<Pendente nome="Pedidos" />} />
-      <Route path="hoje" element={<Pendente nome="Hoje" />} />
-      <Route path="cardapio" element={<Pendente nome="Cardápio" />} />
-      <Route path="cadastros" element={<Pendente nome="Cadastros" />} />
-      <Route path="usuarios" element={<Pendente nome="Usuários" />} />
-      <Route path="conta" element={<Pendente nome="Minha conta" />} />
-    </Routes>
+    <AuthProvider>
+      <Routes>
+        <Route path="entrar" element={<EntrarPage />} />
+        <Route element={<RequerSessao />}>
+          <Route index element={<IndiceDaLoja />} />
+          <Route
+            path="pedidos"
+            element={
+              <RequerAba aba="pedidos">
+                <Pendente nome="Pedidos" />
+              </RequerAba>
+            }
+          />
+          <Route
+            path="hoje"
+            element={
+              <RequerAba aba="hoje">
+                <Pendente nome="Hoje" />
+              </RequerAba>
+            }
+          />
+          <Route
+            path="cardapio"
+            element={
+              <RequerAba aba="cardapio">
+                <Pendente nome="Cardápio" />
+              </RequerAba>
+            }
+          />
+          <Route
+            path="cadastros"
+            element={
+              <RequerAba aba="cadastros">
+                <Pendente nome="Cadastros" />
+              </RequerAba>
+            }
+          />
+          <Route
+            path="usuarios"
+            element={
+              <RequerAba aba="usuarios">
+                <Pendente nome="Usuários" />
+              </RequerAba>
+            }
+          />
+          <Route path="conta" element={<ContaPage />} />
+        </Route>
+      </Routes>
+    </AuthProvider>
   )
 }

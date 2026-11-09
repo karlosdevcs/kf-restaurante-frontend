@@ -1,10 +1,16 @@
+import { QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
+import { criarQueryClient } from './api/queryClient'
 import { rotas } from './routes'
 
 function abrir(caminho: string) {
   const roteador = createMemoryRouter(rotas, { initialEntries: [caminho] })
-  return render(<RouterProvider router={roteador} />)
+  return render(
+    <QueryClientProvider client={criarQueryClient()}>
+      <RouterProvider router={roteador} />
+    </QueryClientProvider>,
+  )
 }
 
 describe('rotas', () => {
@@ -26,12 +32,18 @@ describe('rotas', () => {
     expect(await screen.findByText(`${nome}: em construção.`)).toBeInTheDocument()
   })
 
-  it.each(['/loja', '/loja/entrar', '/loja/pedidos', '/loja/hoje', '/loja/cardapio', '/loja/cadastros', '/loja/usuarios', '/loja/conta'])(
-    'o bloco da loja carrega sob demanda: %s',
+  it('/loja/entrar abre a tela de login (bloco carregado sob demanda)', async () => {
+    abrir('/loja/entrar')
+
+    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
+  })
+
+  it.each(['/loja', '/loja/pedidos', '/loja/hoje', '/loja/cardapio', '/loja/cadastros', '/loja/usuarios', '/loja/conta'])(
+    'sem sessao, %s leva ao login',
     async (caminho) => {
       abrir(caminho)
 
-      expect(await screen.findByText(/em construção/)).toBeInTheDocument()
+      expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
     },
   )
 

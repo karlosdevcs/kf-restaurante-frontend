@@ -12,6 +12,8 @@ export interface ItemDeAba {
 // Setas, Home e End movem entre as abas (padrao ARIA). So recebe as abas PERMITIDAS: quem filtra e a tela.
 export function Tabs({ abas, ativa, aoSelecionar, rotulo }: { abas: ItemDeAba[]; ativa: string; aoSelecionar: (id: string) => void; rotulo: string }) {
   const refs = useRef<Record<string, HTMLButtonElement | null>>({})
+  // fora de uma aba (ex.: Minha conta) nenhuma esta ativa: a primeira continua alcancavel pelo Tab
+  const haAtiva = abas.some((aba) => aba.id === ativa)
 
   function aoTeclar(evento: KeyboardEvent<HTMLButtonElement>, indice: number) {
     let destino = -1
@@ -43,7 +45,7 @@ export function Tabs({ abas, ativa, aoSelecionar, rotulo }: { abas: ItemDeAba[];
             id={idDaAba(aba.id)}
             aria-selected={selecionada}
             aria-controls={idDoPainel(aba.id)}
-            tabIndex={selecionada ? 0 : -1}
+            tabIndex={selecionada || (!haAtiva && indice === 0) ? 0 : -1}
             onClick={() => aoSelecionar(aba.id)}
             onKeyDown={(e) => aoTeclar(e, indice)}
             className={cx(
