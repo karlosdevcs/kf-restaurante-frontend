@@ -4,6 +4,7 @@ import { ehApiError } from '../../api/client'
 import { Banner, Button, Field, Logo, PasswordField } from '../../components/ui'
 import { cx } from '../../lib/cx'
 import { useIsDesktop } from '../../lib/useIsDesktop'
+import { useTituloDaPagina } from '../../lib/useTituloDaPagina'
 import { useSessao } from './useSessao'
 
 const FORMATO_DE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -18,6 +19,7 @@ export function EntrarPage() {
   const { estado, entrar, motivoDoFim } = useSessao()
   const desktop = useIsDesktop()
   const local = useLocation()
+  useTituloDaPagina('Entrar')
 
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')

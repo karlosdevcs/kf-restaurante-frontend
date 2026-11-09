@@ -7,6 +7,7 @@ import { categoriaInfo } from '../../lib/categoriaConfig'
 import { cx } from '../../lib/cx'
 import { formatBRL, pluralizar } from '../../lib/formatar'
 import { tamanhoPadrao } from '../../lib/regrasMarmita'
+import { useFocoNoTitulo } from '../../lib/useFocoNoTitulo'
 import { CartaoDeErroDeCarga, CartaoSemCardapio, Esqueleto, FaixaDeBloqueio } from './Estados'
 import { useCliente } from './useCliente'
 import { useDadosDoCliente } from './useDadosDoCliente'
@@ -18,6 +19,7 @@ export function CardapioMobile() {
   const { itens, adicionarAvulso } = useCliente()
   const navegar = useNavigate()
   const [filtro, setFiltro] = useState<string>('todos')
+  const titulo = useFocoNoTitulo()
 
   const pronto = dados.estado === 'pronto' && !dados.semCardapio
   const filtroEfetivo = dados.categoriasDeComponente.some((categoria) => categoria === filtro) ? filtro : 'todos'
@@ -28,6 +30,9 @@ export function CardapioMobile() {
   return (
     <div className="flex min-h-dvh flex-col bg-white">
       <header className="sticky top-0 z-10 border-b border-line-soft bg-white px-5 pt-[18px] pb-[14px]">
+        <h1 ref={titulo} tabIndex={-1} className="so-leitor">
+          Cardápio
+        </h1>
         <div className="flex items-center justify-between gap-[10px]">
           <Logo tamanho="celular" />
           {dados.restaurante ? <ClientStatusBadge aberta={dados.restaurante.aberto} /> : null}

@@ -5,6 +5,7 @@ import { idDaAba, idDoPainel } from '../../lib/abas'
 import { cx } from '../../lib/cx'
 import { abasPermitidas } from '../../lib/permissoes'
 import { useIsDesktop } from '../../lib/useIsDesktop'
+import { useTituloDaPagina } from '../../lib/useTituloDaPagina'
 import { usePermissao, useSessao } from '../auth/useSessao'
 import { AvisosContext, useAvisosDaLoja, type AvisosDaLoja } from './AvisosDaLoja'
 import { UserMenu } from './UserMenu'
@@ -15,9 +16,11 @@ import { useRestauranteDaLoja } from './useRestauranteDaLoja'
 export function LojaLayout() {
   const { usuario } = useSessao()
   const [erro, setErro] = useState<string | null>(null)
+  const [anuncio, setAnuncio] = useState('')
   const mostrarErro = useCallback((mensagem: string) => setErro(mensagem), [])
   const limparErro = useCallback(() => setErro(null), [])
-  const avisos = useMemo<AvisosDaLoja>(() => ({ erro, mostrarErro, limparErro }), [erro, mostrarErro, limparErro])
+  const anunciar = useCallback((mensagem: string) => setAnuncio(mensagem), [])
+  const avisos = useMemo<AvisosDaLoja>(() => ({ erro, mostrarErro, limparErro, anuncio, anunciar }), [erro, mostrarErro, limparErro, anuncio, anunciar])
 
   if (!usuario) return null
 
@@ -30,12 +33,13 @@ export function LojaLayout() {
 
 function CascaDaLoja() {
   const { usuario, avisoProibido, dispensarAviso } = useSessao()
-  const { erro, limparErro } = useAvisosDaLoja()
+  const { erro, limparErro, anuncio } = useAvisosDaLoja()
   const desktop = useIsDesktop()
   const local = useLocation()
   const navegar = useNavigate()
   const podeAbrirFechar = usePermissao('AbrirFecharLoja')
   const { restaurante, definirAberta, alternando } = useRestauranteDaLoja()
+  useTituloDaPagina('Painel da loja')
 
   if (!usuario) return null
 
@@ -74,6 +78,11 @@ function CascaDaLoja() {
           </div>
         ) : null}
       </header>
+
+      {/* anuncia para leitor de tela a mudanca de aba por falta de permissao (spec, 15.6) */}
+      <p role="status" aria-live="polite" className="so-leitor">
+        {anuncio}
+      </p>
 
       <main
         id={ativa ? idDoPainel(ativa.id) : undefined}

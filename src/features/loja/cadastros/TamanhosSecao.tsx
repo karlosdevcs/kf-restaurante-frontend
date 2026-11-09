@@ -110,7 +110,7 @@ function FormularioDeTamanhoCartao({ tamanho, aoFechar }: { tamanho: Tamanho | n
       aria-label={tamanho ? `Editar Marmita ${tamanho.nome}` : 'Novo tamanho'}
       className="flex flex-col gap-2 rounded-tile border border-brand bg-white px-4 py-[14px]"
     >
-      <Field rotulo="Nome" variante="loja" placeholder="Ex.: M" value={formulario.nome} onChange={(e) => atualizar({ nome: e.target.value })} erro={erroNoNome} />
+      <Field rotulo="Nome" variante="loja" autoFocus placeholder="Ex.: M" value={formulario.nome} onChange={(e) => atualizar({ nome: e.target.value })} erro={erroNoNome} />
       <Field
         rotulo="Preço"
         variante="loja"

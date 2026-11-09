@@ -81,7 +81,7 @@ export function FormularioDeUsuarioCartao({ ator, usuario, aoFechar }: { ator: U
       aria-label={editando ? `Editar ${usuario.nome}` : 'Novo usuário'}
       className="flex flex-col gap-3 rounded-tile border border-brand bg-white px-4 py-[14px]"
     >
-      <Field rotulo="Nome" variante="loja" autoComplete="off" value={formulario.nome} onChange={(e) => atualizar({ nome: e.target.value })} />
+      <Field rotulo="Nome" variante="loja" autoFocus autoComplete="off" value={formulario.nome} onChange={(e) => atualizar({ nome: e.target.value })} />
 
       {editando ? (
         <dl className="flex flex-col gap-1 text-[14px]">

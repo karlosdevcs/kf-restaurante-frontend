@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Banner, Button, IconeVoltar } from '../../components/ui'
 import { detalheDoItem, itemEstaEsgotado } from '../../lib/carrinho'
 import { formatBRL } from '../../lib/formatar'
+import { useFocoNoTitulo } from '../../lib/useFocoNoTitulo'
 import { CartaoDeErroDeCarga, Esqueleto, FaixaDeBloqueio } from './Estados'
 import { FormularioDoPedido } from './FormularioDoPedido'
 import { LinhaDoCarrinho } from './LinhaDoCarrinho'
@@ -15,6 +16,7 @@ export function PedidoMobile() {
   const dados = useDadosDoCliente()
   const { itens, mudarQuantidade } = useCliente()
   const pedido = useFinalizarPedido(dados)
+  const titulo = useFocoNoTitulo()
 
   return (
     <div className="flex min-h-dvh flex-col bg-white">
@@ -25,7 +27,9 @@ export function PedidoMobile() {
             Continuar escolhendo
           </Button>
         </div>
-        <h1 className="text-[24px] font-extrabold">Meu pedido</h1>
+        <h1 ref={titulo} tabIndex={-1} className="text-[24px] font-extrabold">
+          Meu pedido
+        </h1>
       </header>
 
       {dados.motivoDoBloqueio ? <FaixaDeBloqueio motivo={dados.motivoDoBloqueio} /> : null}

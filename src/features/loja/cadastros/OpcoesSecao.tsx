@@ -161,6 +161,7 @@ function FormularioDeOpcaoCartao({ opcao, aoFechar }: { opcao: Opcao | null; aoF
       <Field
         rotulo="Nome"
         variante="loja"
+        autoFocus
         placeholder="Nome, ex.: Strogonoff"
         value={formulario.nome}
         onChange={(e) => atualizar({ nome: e.target.value })}

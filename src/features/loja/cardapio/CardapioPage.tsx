@@ -5,6 +5,7 @@ import { Banner, Button, ListCheckbox } from '../../../components/ui'
 import { categoriaInfo } from '../../../lib/categoriaConfig'
 import { cx } from '../../../lib/cx'
 import { formatBRL, pluralizar } from '../../../lib/formatar'
+import { useFocoNoTitulo } from '../../../lib/useFocoNoTitulo'
 import { useIsDesktop } from '../../../lib/useIsDesktop'
 import { CartaoDeErroDeCarga, Esqueleto } from '../../cliente/Estados'
 import { useAcoesDoCardapio, useCardapioDoPainel, useTodasAsOpcoes } from './useCardapioDoPainel'
@@ -27,6 +28,7 @@ export function CardapioPage() {
   const painel = useCardapioDoPainel()
   const acoes = useAcoesDoCardapio()
   const cardapio: Cardapio | null | undefined = painel.data
+  const titulo = useFocoNoTitulo(cardapio !== undefined)
   const semCardapio = cardapio === null
 
   const todas = useTodasAsOpcoes(semCardapio)
@@ -90,7 +92,9 @@ export function CardapioPage() {
         className={cx('flex flex-col gap-3 rounded-cartao', desktop ? 'border border-line-soft bg-white px-5 py-[18px]' : 'bg-surface px-4 py-[14px]')}
       >
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className={cx('font-extrabold', desktop ? 'text-[24px]' : 'text-[20px]')}>Cardápio do dia</h1>
+          <h1 ref={titulo} tabIndex={-1} className={cx('font-extrabold', desktop ? 'text-[24px]' : 'text-[20px]')}>
+            Cardápio do dia
+          </h1>
           {situacao ? <span className="rounded-pilula bg-brand-tint px-3 py-1 text-[13px] font-bold text-brand-strong">{situacao}</span> : null}
         </div>
         {semCardapio ? (

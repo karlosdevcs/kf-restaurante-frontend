@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { PedidoResumo } from '../../../api/tipos'
 import { cx } from '../../../lib/cx'
 import { filtrarPorStatus, type FiltroDeStatus } from '../../../lib/statusPedido'
+import { useFocoNoTitulo } from '../../../lib/useFocoNoTitulo'
 import { useIsDesktop } from '../../../lib/useIsDesktop'
 import { Pode } from '../../auth/Pode'
 import { CartaoDeErroDeCarga, Esqueleto } from '../../cliente/Estados'
@@ -16,6 +17,7 @@ export function PedidosPage() {
   const pedidos = usePedidosDeHoje()
   const [filtro, setFiltro] = useState<FiltroDeStatus>('todos')
   const anuncio = useNovosPedidos(pedidos.data)
+  const titulo = useFocoNoTitulo()
 
   const lista = pedidos.data ?? []
   const visiveis = filtrarPorStatus(lista, filtro)
@@ -42,7 +44,9 @@ export function PedidosPage() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className={cx('font-extrabold', desktop ? 'text-[24px]' : 'text-[22px]')}>Pedidos de hoje</h1>
+        <h1 ref={titulo} tabIndex={-1} className={cx('font-extrabold', desktop ? 'text-[24px]' : 'text-[22px]')}>
+          Pedidos de hoje
+        </h1>
         {desktop ? <p className="text-[13px] text-muted">O mais recente aparece primeiro</p> : null}
       </div>
 

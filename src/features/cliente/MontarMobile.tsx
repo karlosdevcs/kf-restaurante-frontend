@@ -3,6 +3,7 @@ import { Button, IconeVoltar, IngredientTile, SizeButton } from '../../component
 import { categoriaInfo } from '../../lib/categoriaConfig'
 import { formatBRL } from '../../lib/formatar'
 import { limiteDaCategoria } from '../../lib/regrasMarmita'
+import { useFocoNoTitulo } from '../../lib/useFocoNoTitulo'
 import { CartaoDeErroDeCarga, CartaoSemCardapio, Esqueleto, FaixaDeBloqueio } from './Estados'
 import { useCliente } from './useCliente'
 import { useDadosDoCliente } from './useDadosDoCliente'
@@ -17,6 +18,7 @@ export function MontarMobile() {
 
   const tamanho = dados.tamanhos.find((candidato) => String(candidato.id) === tamanhoId)
   const montagem = useMontagem(tamanho, dados.opcoesPorId, !dados.podePedir)
+  const titulo = useFocoNoTitulo(tamanho !== undefined)
 
   // tamanho que nao existe (link velho): volta para o cardapio
   if (dados.estado === 'pronto' && !dados.semCardapio && !tamanho) return <Navigate to="/" replace />
@@ -48,7 +50,9 @@ export function MontarMobile() {
         </div>
         {tamanho ? (
           <>
-            <h1 className="text-[24px] font-extrabold">Marmita {tamanho.nome}</h1>
+            <h1 ref={titulo} tabIndex={-1} className="text-[24px] font-extrabold">
+              Marmita {tamanho.nome}
+            </h1>
             <div className="flex items-center justify-between gap-3">
               <div role="group" aria-label="Tamanho" className="flex gap-2 overflow-x-auto">
                 {dados.tamanhos.map((candidato) => (

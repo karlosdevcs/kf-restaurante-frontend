@@ -4,6 +4,7 @@ import { ehApiError } from '../../../api/client'
 import type { Usuario } from '../../../api/tipos'
 import { Banner, Button, Dialog, PasswordField } from '../../../components/ui'
 import { cx } from '../../../lib/cx'
+import { useFocoNoTitulo } from '../../../lib/useFocoNoTitulo'
 import { useIsDesktop } from '../../../lib/useIsDesktop'
 import { validarSenha } from '../../../lib/usuarios'
 import { useSessao } from '../../auth/useSessao'
@@ -20,6 +21,7 @@ export function UsuariosPage() {
   const { usuario: ator } = useSessao()
   const usuarios = useUsuarios()
   const acoes = useAcoesDeUsuario()
+  const titulo = useFocoNoTitulo()
 
   // `null` = fechado; `'novo'` = criando; um usuario = editando
   const [formulario, setFormulario] = useState<Usuario | 'novo' | null>(null)
@@ -93,7 +95,9 @@ export function UsuariosPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
-        <h1 className={cx('font-extrabold', desktop ? 'text-[24px]' : 'text-[22px]')}>Usuários</h1>
+        <h1 ref={titulo} tabIndex={-1} className={cx('font-extrabold', desktop ? 'text-[24px]' : 'text-[22px]')}>
+          Usuários
+        </h1>
         <Button
           variante="primary-ink"
           altura={desktop ? 46 : 44}

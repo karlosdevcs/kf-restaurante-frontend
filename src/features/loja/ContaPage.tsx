@@ -3,11 +3,13 @@ import { useState, type FormEvent } from 'react'
 import { trocarSenha } from '../../api/auth'
 import { Banner, Button, Chip, PasswordField } from '../../components/ui'
 import { rotuloDaPermissao, rotuloDoPapel } from '../../lib/permissoes'
+import { useFocoNoTitulo } from '../../lib/useFocoNoTitulo'
 import { useSessao } from '../auth/useSessao'
 
 // Minha conta (spec, 11.6): dados da pessoa (somente leitura) e troca da propria senha.
 export function ContaPage() {
   const { usuario } = useSessao()
+  const titulo = useFocoNoTitulo()
   const [atual, setAtual] = useState('')
   const [nova, setNova] = useState('')
   const [confirmacao, setConfirmacao] = useState('')
@@ -39,7 +41,9 @@ export function ContaPage() {
 
   return (
     <div className="mx-auto flex max-w-[560px] flex-col gap-4">
-      <h1 className="text-[24px] font-extrabold">Minha conta</h1>
+      <h1 ref={titulo} tabIndex={-1} className="text-[24px] font-extrabold">
+        Minha conta
+      </h1>
 
       <section aria-label="Seus dados" className="flex flex-col gap-3 rounded-cartao border border-line-soft bg-white p-5">
         <div>

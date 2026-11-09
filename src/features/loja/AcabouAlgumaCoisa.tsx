@@ -77,7 +77,7 @@ export function AcabouAlgumaCoisa({ layout }: { layout: LayoutDoAcabou }) {
     corpo = (
       <div role="alert" className="flex flex-col items-start gap-2">
         <p className="text-[14px] text-muted">Não foi possível carregar as opções.</p>
-        <button type="button" onClick={() => void cardapio.refetch()} className="text-[14px] font-bold text-brand">
+        <button type="button" onClick={() => void cardapio.refetch()} className="inline-flex min-h-[44px] items-center text-[14px] font-bold text-brand">
           Tentar de novo
         </button>
       </div>
@@ -87,7 +87,7 @@ export function AcabouAlgumaCoisa({ layout }: { layout: LayoutDoAcabou }) {
       <div className="flex flex-col items-start gap-2">
         <p className="text-[14px] text-muted">Sem cardápio publicado hoje.</p>
         <Pode permissao="GerenciarCardapio">
-          <Link to="/loja/cardapio" className="text-[14px] font-bold text-brand">
+          <Link to="/loja/cardapio" className="inline-flex min-h-[44px] items-center text-[14px] font-bold text-brand">
             Ir para o cardápio
           </Link>
         </Pode>

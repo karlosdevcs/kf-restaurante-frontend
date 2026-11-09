@@ -2,6 +2,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { marcarComoEnviado } from '../../api/pedidos'
 import { Button, IconeCheck, LinkButton } from '../../components/ui'
 import { cx } from '../../lib/cx'
+import { useFocoNoTitulo } from '../../lib/useFocoNoTitulo'
 import { useIsDesktop } from '../../lib/useIsDesktop'
 import { useCliente } from './useCliente'
 
@@ -12,6 +13,7 @@ export function ConfirmacaoPage() {
   const navegar = useNavigate()
   const desktop = useIsDesktop()
   const { pedidoConfirmado: pedido, recomecar } = useCliente()
+  const titulo = useFocoNoTitulo()
 
   // aberta sem o dado do pedido (ou de outro pedido): nao ha o que mostrar
   if (!pedido || String(pedido.numero) !== numero) return <Navigate to="/" replace />
@@ -57,7 +59,9 @@ export function ConfirmacaoPage() {
         <span aria-hidden="true" className="grid h-14 w-14 place-items-center rounded-full bg-success-bg text-success">
           <IconeCheck tamanho={28} espessura={3} />
         </span>
-        <h1 className="text-[26px] font-extrabold">Pedido nº {pedido.numero} registrado</h1>
+        <h1 ref={titulo} tabIndex={-1} className="text-[26px] font-extrabold">
+          Pedido nº {pedido.numero} registrado
+        </h1>
         <p className="text-[14px] leading-normal text-muted">Agora é só enviar pro WhatsApp da loja. Ela confirma por lá.</p>
         {/* texto puro (nunca HTML), com as quebras de linha da API */}
         <div className="rounded-cartao bg-surface p-4 text-[14px] leading-normal whitespace-pre-line">{pedido.mensagemWhatsApp}</div>

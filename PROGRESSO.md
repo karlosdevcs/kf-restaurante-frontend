@@ -8,7 +8,7 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 
 ## Fase atual
 
-**Fase 10: estados de carregamento, vazio e erro, e acessibilidade** (em andamento)
+**Fase 11: testes da seção 18, README e checklist de aceite** (em andamento)
 
 ## Fases concluídas
 
@@ -22,7 +22,8 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 | 6. Loja: casca e aba Pedidos | `7f55a5e` | `LojaLayout` com cabeçalho (Logo + "Painel da loja", `StatusButton` e `UserMenu`), abas por permissão e banner de erro de mutação (`AvisosDaLoja`); `PedidosPage` com filtros por contagem, tabela (computador) e cartões (celular), detalhe sob demanda com cache sem expiração, polling de 30 s, anúncio de pedido novo, "Chamar no WhatsApp"; coluna `AcabouAlgumaCoisa` (EsgotarOpcoes) com atualização otimista; testes 5 e 9 completos e o selo da loja; 25 testes novos (249 no total) |
 | 7. Loja: abas Hoje e Cardápio | `10170db` | `HojePage` (cartão de status com foco no WhatsApp quando abrir é recusado, cartão do WhatsApp com erro do 400 junto do campo, "Acabou alguma coisa?" em grade ou lista); `CardapioPage` com os 4 estados (sem cardápio, rascunho, publicado, fechado), descoberta do cardápio de hoje (GET /cardapios/hoje, depois o id do `localStorage`), 409 com a explicação do rascunho; teste 13 completo e a navegação do topo do computador conforme a seção 16.2; 30 testes novos (279 no total) |
 | 8. Loja: aba Cadastros | `9913bf1` | `CadastrosPage` (computador: Opções e Tamanhos lado a lado; celular: duas `ChoiceButton`), `OpcoesSecao` com tabela/linhas e formulário (regra do preço: Bebida e Sobremesa exigem, componente só com "Vender também avulsa"; 409 abaixo do Nome, 400 em Banner), `TamanhosSecao` com cartões, formulário e limites por categoria (`PUT /tamanhos/{id}/limites` substitui tudo); `lib/cadastros` e `lib/dinheiro`; 36 testes novos (315 no total) |
-| 9. Loja: aba Usuários | (hash no commit seguinte) | `UsuariosPage` (tabela no computador, cartões no celular, marca "Você", só "Minha conta" na própria linha), formulários "Novo usuário" e "Editar" com a hierarquia espelhada (`lib/usuarios`: papéis que cada um cria, permissões que cada um concede, checkbox habilitado se quem edita tem a permissão ou o editado já a tinha), `Dialog` de desativar e de redefinir senha, ativar sem confirmação; teste 10 completo; 23 testes novos (338 no total); `Pendente.tsx` removido |
+| 9. Loja: aba Usuários | `9fd6679` | `UsuariosPage` (tabela no computador, cartões no celular, marca "Você", só "Minha conta" na própria linha), formulários "Novo usuário" e "Editar" com a hierarquia espelhada (`lib/usuarios`: papéis que cada um cria, permissões que cada um concede, checkbox habilitado se quem edita tem a permissão ou o editado já a tinha), `Dialog` de desativar e de redefinir senha, ativar sem confirmação; teste 10 completo; 23 testes novos (338 no total); `Pendente.tsx` removido |
+| 10. Estados e acessibilidade | (hash no commit seguinte) | Auditoria da seção 15: foco no título ao trocar de tela no celular (`useFocoNoTitulo`), foco no primeiro campo dos formulários, `<title>` por rota (`useTituloDaPagina`), anúncio aria-live da mudança de aba por falta de permissão, área de toque dos botões de texto; os estados de carregamento, vazio e erro da seção 14 já nasceram com cada tela e ganharam testes de erro para Opções, Tamanhos e Usuários; teste estático das regras de segurança (`seguranca.test.ts`); 24 testes novos (362 no total) |
 
 ## Divergências encontradas (spec x código)
 
@@ -113,6 +114,11 @@ Decisões marcadas como "decisão minha" na spec seguem o padrão que a própria
 | 61 | O `Dialog` de redefinir senha ganhou o texto "A conta também é destravada. A pessoa troca a senha depois, em Minha conta." | A spec só pede o campo e o botão; o texto diz o efeito antes de confirmar |
 | 62 | Nos testes, `asyncUtilTimeout` do Testing Library é 3 s | O primeiro teste de cada arquivo carrega a loja por import dinâmico e, com arquivos em paralelo, 1 s às vezes não bastava (testes intermitentes) |
 | 63 | Criar usuário sem permissões marcadas envia `permissoes: []`; Superuser sempre envia `[]` | A API ignora a lista de superuser (ele tem todas) |
+| 64 | O foco vai para o título da tela nova só no celular e só depois da primeira tela da página; o título ganhou `tabIndex={-1}`. A tela Cardápio do celular ganhou um `h1` visualmente oculto ("Cardápio") para receber o foco | No computador a troca de aba é feita no `tablist`, e tirar o foco dele quebraria a navegação por setas; a primeira tela não deve roubar o foco do navegador |
+| 65 | `useTituloDaPagina`: "KF Restaurante" (cliente), "Entrar · KF Restaurante", "Painel da loja · KF Restaurante" e "Página não encontrada · KF Restaurante" | Seção 15.9 (a 4ª é a mesma regra aplicada à rota `*`) |
+| 66 | O aviso de aba sem permissão ("Você não tem acesso a esta área. Abrimos Pedidos.") sai por uma região `aria-live` do layout da loja, também quando a pessoa abre direto uma URL que não pode | Seção 15.6 pede o anúncio; o texto não existe na spec |
+| 67 | `seguranca.test.ts` lê os fontes por `import.meta.glob(..., { query: '?raw' })` em vez de `node:fs`; não confere o `.env.example` | Evita instalar `@types/node` (biblioteca fora da lista da seção 3) e o Vite bloqueia a importação de `.env*`. A regra "só `VITE_API_URL`" é conferida no código que a lê |
+| 68 | Os botões de texto ("Tentar de novo", "Ir para o cardápio") ganharam `min-h-[44px]` | Seção 15.4: área de toque de 44px |
 
 ## Riscos e pendências de entrega
 

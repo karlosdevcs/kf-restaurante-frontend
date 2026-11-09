@@ -1,6 +1,8 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { Banner, Button, Logo } from '../../components/ui'
+import { useEffect } from 'react'
+import { useAvisosDaLoja } from '../loja/AvisosDaLoja'
 import { LojaLayout } from '../loja/LojaLayout'
 import { abaPorId, primeiraAbaPermitida, type IdDaAba } from '../../lib/permissoes'
 import { useSessao } from './useSessao'
@@ -63,12 +65,17 @@ function EsqueletoDaLoja({ children }: { children?: ReactNode }) {
 // Guarda de aba: sem a permissao, vai para a primeira aba permitida (ou para /loja, que mostra "sem acesso").
 export function RequerAba({ aba, children }: { aba: IdDaAba; children: ReactNode }) {
   const { usuario } = useSessao()
-  if (!usuario) return null
+  const { anunciar } = useAvisosDaLoja()
+  const permitida = usuario ? abaPorId(aba).permitida(usuario) : true
+  const destino = usuario ? primeiraAbaPermitida(usuario) : null
 
-  if (!abaPorId(aba).permitida(usuario)) {
-    const primeira = primeiraAbaPermitida(usuario)
-    return <Navigate to={primeira ? primeira.caminho : '/loja'} replace />
-  }
+  // a mudanca de aba por falta de permissao e anunciada ao leitor de tela
+  useEffect(() => {
+    if (!permitida) anunciar(destino ? `Você não tem acesso a esta área. Abrimos ${destino.rotulo}.` : 'Você não tem acesso a esta área.')
+  }, [permitida, destino, anunciar])
+
+  if (!usuario) return null
+  if (!permitida) return <Navigate to={destino ? destino.caminho : '/loja'} replace />
 
   return <>{children}</>
 }

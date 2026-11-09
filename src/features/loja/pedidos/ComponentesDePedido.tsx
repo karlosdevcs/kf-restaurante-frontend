@@ -63,7 +63,7 @@ export function ItensDoPedido({ id, className }: { id: number; className?: strin
   if (detalhe.isPending) return <Esqueleto className={cx('h-4 w-48 rounded-tamanho', className)} />
   if (detalhe.isError) {
     return (
-      <button type="button" onClick={() => void detalhe.refetch()} className="text-[12px] font-semibold text-brand">
+      <button type="button" onClick={() => void detalhe.refetch()} className="inline-flex min-h-[44px] items-center text-[12px] font-semibold text-brand">
         Não foi possível carregar os itens. Tentar de novo
       </button>
     )

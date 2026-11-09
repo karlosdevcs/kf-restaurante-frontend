@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Banner, Button, Field } from '../../../components/ui'
 import { cx } from '../../../lib/cx'
 import { formatWhatsAppLoja } from '../../../lib/formatar'
+import { useFocoNoTitulo } from '../../../lib/useFocoNoTitulo'
 import { useIsDesktop } from '../../../lib/useIsDesktop'
 import { Pode } from '../../auth/Pode'
 import { usePermissao } from '../../auth/useSessao'
@@ -15,6 +16,7 @@ const ID_DO_CAMPO_WHATSAPP = 'whatsapp-da-loja'
 export function HojePage() {
   const desktop = useIsDesktop()
   const podeAlterarWhatsApp = usePermissao('AlterarWhatsApp')
+  const titulo = useFocoNoTitulo()
 
   // abrir sem WhatsApp cadastrado volta 400: com AlterarWhatsApp, leva a pessoa direto ao campo
   function focarNoWhatsApp() {
@@ -34,7 +36,9 @@ export function HojePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className={cx('font-extrabold', desktop ? 'text-[24px]' : 'text-[22px]')}>Hoje</h1>
+      <h1 ref={titulo} tabIndex={-1} className={cx('font-extrabold', desktop ? 'text-[24px]' : 'text-[22px]')}>
+        Hoje
+      </h1>
       {desktop ? (
         <div className="flex flex-wrap items-start gap-6">
           {lateral}

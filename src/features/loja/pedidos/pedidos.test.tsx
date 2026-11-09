@@ -113,7 +113,8 @@ describe('aba Pedidos no computador', () => {
   it('pedido novo no polling entra no topo e e anunciado para leitor de tela; a primeira carga nao anuncia nada', async () => {
     const cenario = servirLoja()
     await abrirPedidos()
-    const anuncio = screen.getAllByRole('status').find((no) => no.className.includes('so-leitor'))
+    // o anuncio de pedidos novos fica dentro do painel da aba (o do layout e outro, para mudanca de aba)
+    const anuncio = within(screen.getByRole('tabpanel')).getAllByRole('status').find((no) => no.className.includes('so-leitor'))
     expect(anuncio).toHaveTextContent('')
 
     cenario.lista = [{ ...RESUMO_ENVIADO, id: 3, numero: 15, horaPedido: '2026-11-09T00:30:00Z', nomeCliente: 'Ana' }, ...cenario.lista]

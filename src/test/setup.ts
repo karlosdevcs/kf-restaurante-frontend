@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { configure } from '@testing-library/react'
+import { reiniciarFocoDeTela } from '../lib/useFocoNoTitulo'
 import { servidor } from './servidor'
 
 // o primeiro teste de cada arquivo carrega o bloco da loja sob demanda (import dinamico): com varios arquivos em paralelo,
@@ -10,6 +11,7 @@ configure({ asyncUtilTimeout: 3000 })
 beforeAll(() => servidor.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   servidor.resetHandlers()
+  reiniciarFocoDeTela()
   sessionStorage.clear()
 })
 afterAll(() => servidor.close())

@@ -2,6 +2,7 @@ import { useCallback, useMemo, useReducer, useRef, useState, type ReactNode } fr
 import { Outlet } from 'react-router-dom'
 import type { Pedido } from '../../api/tipos'
 import { carrinhoReducer } from '../../lib/carrinho'
+import { useTituloDaPagina } from '../../lib/useTituloDaPagina'
 import { FORMULARIO_INICIAL, type FormularioDoPedido } from '../../lib/pedidoCliente'
 import { ClienteContext, type ValorDoCliente } from './ClienteContext'
 import { guardarUltimoPedido, lerUltimoPedido, limparUltimoPedido } from './ultimoPedido'
@@ -48,6 +49,8 @@ export function ClienteProvider({ children }: { children: ReactNode }) {
 
 // rota-pai de todas as telas do cliente: o carrinho sobrevive a troca de tela
 export function ClienteLayout() {
+  useTituloDaPagina()
+
   return (
     <ClienteProvider>
       <Outlet />

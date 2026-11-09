@@ -5,6 +5,9 @@ export interface AvisosDaLoja {
   erro: string | null
   mostrarErro: (mensagem: string) => void
   limparErro: () => void
+  /** texto lido pelo leitor de tela (regiao aria-live), sem aparecer na tela */
+  anuncio: string
+  anunciar: (mensagem: string) => void
 }
 
 export const AvisosContext = createContext<AvisosDaLoja | null>(null)
