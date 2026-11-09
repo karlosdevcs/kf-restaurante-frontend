@@ -63,11 +63,13 @@ export interface CenarioDaLoja {
   restaurante: Restaurante
   cardapio: Cardapio | null
   /** quantas vezes cada rota foi chamada */
-  chamadas: { lista: number; detalhes: Record<number, number>; esgotados: Array<{ id: number; esgotado: boolean }>; restaurante: string[] }
+  chamadas: { lista: number; detalhes: Record<number, number>; esgotados: Array<{ id: number; esgotado: boolean }>; restaurante: string[]; whatsapp: string[] }
   /** problema devolvido por PATCH /opcoes/{id}/esgotado (se definido) */
   recusarEsgotado?: { status: number; detail: string }
   /** problema devolvido por POST /restaurante/abrir (se definido) */
   recusarAbrir?: { status: number; detail: string }
+  /** problema devolvido por PUT /restaurante/whatsapp (se definido) */
+  recusarWhatsApp?: { status: number; detail: string }
 }
 
 // Handlers da area da loja: lista de pedidos, detalhes, estado da loja, cardapio de hoje e esgotar.
@@ -76,7 +78,7 @@ export function servirLoja(sobrescrever: Partial<CenarioDaLoja> = {}): CenarioDa
     lista: [RESUMO_NAO_ENVIADO, RESUMO_ENVIADO],
     restaurante: { aberto: true, whatsApp: '5531999999999' },
     cardapio: { id: 5, dataPublicacao: '2026-11-08', situacao: 'Publicado', opcoes: OPCOES.map((o: Opcao) => ({ ...o })) },
-    chamadas: { lista: 0, detalhes: {}, esgotados: [], restaurante: [] },
+    chamadas: { lista: 0, detalhes: {}, esgotados: [], restaurante: [], whatsapp: [] },
     ...sobrescrever,
   }
 
@@ -103,6 +105,13 @@ export function servirLoja(sobrescrever: Partial<CenarioDaLoja> = {}): CenarioDa
     http.post(`${API}/restaurante/fechar`, () => {
       cenario.chamadas.restaurante.push('fechar')
       cenario.restaurante = { ...cenario.restaurante, aberto: false }
+      return HttpResponse.json(cenario.restaurante)
+    }),
+    http.put(`${API}/restaurante/whatsapp`, async ({ request }) => {
+      const { whatsApp } = (await request.json()) as { whatsApp: string }
+      cenario.chamadas.whatsapp.push(whatsApp)
+      if (cenario.recusarWhatsApp) return problema(cenario.recusarWhatsApp)
+      cenario.restaurante = { ...cenario.restaurante, whatsApp: whatsApp.replace(/\D/g, '').replace(/^(?!55)/, '55') }
       return HttpResponse.json(cenario.restaurante)
     }),
     http.get(`${API}/cardapios/hoje`, () => (cenario.cardapio ? HttpResponse.json(cenario.cardapio) : HttpResponse.json({ status: 404, title: 'Não encontrado.' }, { status: 404 }))),

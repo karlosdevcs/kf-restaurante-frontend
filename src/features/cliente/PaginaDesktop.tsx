@@ -15,11 +15,13 @@ import { useDadosDoCliente } from './useDadosDoCliente'
 import { useFinalizarPedido } from './useFinalizarPedido'
 import { useMontagem } from './useMontagem'
 
-const SECOES = [
-  { id: 'produto', rotulo: 'Marmita' },
-  { id: 'acompanhar', rotulo: 'Pra acompanhar' },
-  { id: 'pedido', rotulo: 'Meu pedido' },
-] as const
+// Navegacao do topo (spec, 16.2): Marmitas, Bebidas e Sobremesas, como ancoras. "Marmitas" rola ate o produto; as outras
+// rolam ate "Pra acompanhar" ja filtrado pela categoria. Bebidas e Sobremesas so aparecem se houver o que vender nelas.
+type DestinoDoTopo = 'marmitas' | 'Bebida' | 'Sobremesa'
+const DESTINOS_DE_AVULSO: Array<{ id: Exclude<DestinoDoTopo, 'marmitas'>; rotulo: string }> = [
+  { id: 'Bebida', rotulo: 'Bebidas' },
+  { id: 'Sobremesa', rotulo: 'Sobremesas' },
+]
 
 // `/` no computador (spec, 9.2): pagina unica com filtros, produto, acompanhamentos e carrinho lateral com o formulario.
 // Nao existe modo "montar" separado: a secao de produto fica sempre visivel, com o tamanho do meio selecionado ao abrir.
@@ -30,7 +32,7 @@ export function PaginaDesktop() {
   const [parametros, setParametros] = useSearchParams()
   const [filtro, setFiltro] = useState<string>('todos')
   const [quantidade, setQuantidade] = useState(1)
-  const [secaoAtiva, setSecaoAtiva] = useState<(typeof SECOES)[number]['id']>('produto')
+  const [destino, setDestino] = useState<DestinoDoTopo>('marmitas')
   const pedido = useFinalizarPedido(dados)
 
   const tamanho = dados.tamanhos.find((candidato) => String(candidato.id) === parametros.get('tamanho')) ?? tamanhoPadrao(dados.tamanhos)
@@ -54,10 +56,13 @@ export function PaginaDesktop() {
     setQuantidade(1)
   }
 
-  function irPara(id: (typeof SECOES)[number]['id']) {
-    setSecaoAtiva(id)
-    document.getElementById(`secao-${id}`)?.scrollIntoView?.()
+  function irPara(novo: DestinoDoTopo) {
+    setDestino(novo)
+    document.getElementById(novo === 'marmitas' ? 'secao-produto' : 'secao-acompanhar')?.scrollIntoView?.()
   }
+
+  // "Pra acompanhar" filtrado pela categoria escolhida no topo (Marmitas = sem filtro)
+  const avulsosMostrados = destino === 'marmitas' ? dados.avulsos : dados.avulsos.filter((opcao) => opcao.categoria === destino)
 
   const noCarrinho = (opcao: Opcao) => itens.find((item) => item.tipo === 'avulso' && item.opcaoId === opcao.id)?.quantidade ?? 0
   const total = quantidadeDeItens(itens)
@@ -68,13 +73,18 @@ export function PaginaDesktop() {
         <header className="flex items-center gap-6 border-b border-line-soft px-7 py-5">
           <Logo />
           <nav aria-label="Seções" className="flex flex-1 gap-2">
-            {pronto
-              ? SECOES.map((secao) => (
-                  <TopNavPill key={secao.id} ativa={secaoAtiva === secao.id} onClick={() => irPara(secao.id)}>
-                    {secao.rotulo}
+            {pronto ? (
+              <>
+                <TopNavPill ativa={destino === 'marmitas'} onClick={() => irPara('marmitas')}>
+                  Marmitas
+                </TopNavPill>
+                {DESTINOS_DE_AVULSO.filter(({ id }) => dados.avulsos.some((opcao) => opcao.categoria === id)).map(({ id, rotulo }) => (
+                  <TopNavPill key={id} ativa={destino === id} onClick={() => irPara(id)}>
+                    {rotulo}
                   </TopNavPill>
-                ))
-              : null}
+                ))}
+              </>
+            ) : null}
           </nav>
           {dados.restaurante ? <ClientStatusBadge aberta={dados.restaurante.aberto} /> : null}
         </header>
@@ -174,7 +184,7 @@ export function PaginaDesktop() {
                       Pra acompanhar
                     </h2>
                     <ul className="grid gap-[14px]" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))' }}>
-                      {dados.avulsos.map((opcao) => (
+                      {avulsosMostrados.map((opcao) => (
                         <li key={opcao.id} className="flex items-center gap-3 rounded-cartao border border-line-soft p-3">
                           <span aria-hidden="true" className="h-11 w-11 shrink-0 rounded-escolha" style={{ backgroundColor: categoriaInfo(opcao.categoria).cor }} />
                           <div className="min-w-0 flex-1">

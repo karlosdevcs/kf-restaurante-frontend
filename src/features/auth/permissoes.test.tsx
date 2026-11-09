@@ -54,7 +54,7 @@ describe('abas por permissao', () => {
   it('/loja vai para a primeira aba permitida', async () => {
     const { roteador } = await abrirComo('Funcionario', ['GerenciarCadastros', 'GerenciarCardapio'])
 
-    expect(await screen.findByText('Cardápio: em construção.')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Cardápio do dia' })).toBeInTheDocument()
     expect(roteador.state.location.pathname).toBe('/loja/cardapio')
   })
 
@@ -88,7 +88,7 @@ describe('abas por permissao', () => {
     let permissoes: Permissao[] = ['VerPedidos', 'GerenciarCardapio']
     responderEu(() => criarUsuario({ permissoes }))
     const { roteador } = renderizarLoja('/loja/cardapio')
-    await screen.findByText('Cardápio: em construção.')
+    await screen.findByRole('heading', { name: 'Cardápio do dia' })
     expect(nomesDasAbas()).toEqual(['Pedidos', 'Cardápio'])
 
     permissoes = ['VerPedidos']

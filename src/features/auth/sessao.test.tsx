@@ -32,7 +32,7 @@ describe('login e sessao', () => {
     await preencherEEnviar('pessoa@teste.local', 'qualquer-senha')
 
     // a primeira, na ordem Pedidos, Hoje, Cardapio... e "Hoje" (a pessoa nao tem VerPedidos)
-    expect(await screen.findByText('Hoje: em construção.')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Hoje' })).toBeInTheDocument()
     expect(roteador.state.location.pathname).toBe('/loja/hoje')
     expect(screen.getAllByRole('tab').map((aba) => aba.textContent)).toEqual(['Hoje', 'Cardápio'])
   })

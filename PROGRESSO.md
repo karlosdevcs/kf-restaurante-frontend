@@ -8,7 +8,7 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 
 ## Fase atual
 
-**Fase 7: loja, abas Hoje e Cardápio** (em andamento)
+**Fase 8: loja, aba Cadastros** (em andamento)
 
 ## Fases concluídas
 
@@ -19,7 +19,8 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 | 3. Autenticação | `b9eaf34` | `AuthProvider` (só dentro de `/loja`), login `/loja/entrar`, sessão em `sessionStorage`, guardas `RequerSessao`/`RequerAba`, `GET /auth/eu` (foco, 60 s, após 403), expiração por horário, `UserMenu`, `LojaLayout` com abas por permissão, `SemAcesso`, `ContaPage` (trocar senha), `lib/permissoes.ts`, hooks `useSessao`/`usePermissao`/`usePermissoes`/`useEhGestor` e `<Pode>`; testes 7, 8 e 9 (33 novos, 153 no total) |
 | 4. Cliente celular | `9dc2b4f` | Telas 1 a 4 com dados reais (`CardapioMobile`, `MontarMobile`, `PedidoMobile`, `ConfirmacaoPage`), carrinho e formulário em Context + reducer (`ClienteProvider`), `useDadosDoCliente` (restaurante, cardápio de hoje e tamanhos; reconsulta a cada 60 s e no foco), `useMontagem`, `useFinalizarPedido`, `FormularioDoPedido` e `LinhaDoCarrinho` (já compartilhados com a fase 5), regras puras em `lib/regrasMarmita`, `lib/carrinho` e `lib/pedidoCliente`; testes 1, 2, 3, 11 e 12 (58 novos, 211 no total) |
 | 5. Cliente desktop | `05506e3` | `PaginaDesktop` (filtros, produto, "Pra acompanhar" e carrinho lateral com o mesmo `FormularioDoPedido` do celular, "Confirmar pedido"), escolha do layout por `useIsDesktop` em `PaginaInicial`, `/montar/:id` vira `/?tamanho=:id` e `/pedido` volta a `/` no computador, confirmação centralizada (max 680) com os botões no corpo; 13 testes novos (224 no total) |
-| 6. Loja: casca e aba Pedidos | (hash no commit seguinte) | `LojaLayout` com cabeçalho (Logo + "Painel da loja", `StatusButton` e `UserMenu`), abas por permissão e banner de erro de mutação (`AvisosDaLoja`); `PedidosPage` com filtros por contagem, tabela (computador) e cartões (celular), detalhe sob demanda com cache sem expiração, polling de 30 s, anúncio de pedido novo, "Chamar no WhatsApp"; coluna `AcabouAlgumaCoisa` (EsgotarOpcoes) com atualização otimista; testes 5 e 9 completos e o selo da loja; 25 testes novos (249 no total) |
+| 6. Loja: casca e aba Pedidos | `7f55a5e` | `LojaLayout` com cabeçalho (Logo + "Painel da loja", `StatusButton` e `UserMenu`), abas por permissão e banner de erro de mutação (`AvisosDaLoja`); `PedidosPage` com filtros por contagem, tabela (computador) e cartões (celular), detalhe sob demanda com cache sem expiração, polling de 30 s, anúncio de pedido novo, "Chamar no WhatsApp"; coluna `AcabouAlgumaCoisa` (EsgotarOpcoes) com atualização otimista; testes 5 e 9 completos e o selo da loja; 25 testes novos (249 no total) |
+| 7. Loja: abas Hoje e Cardápio | (hash no commit seguinte) | `HojePage` (cartão de status com foco no WhatsApp quando abrir é recusado, cartão do WhatsApp com erro do 400 junto do campo, "Acabou alguma coisa?" em grade ou lista); `CardapioPage` com os 4 estados (sem cardápio, rascunho, publicado, fechado), descoberta do cardápio de hoje (GET /cardapios/hoje, depois o id do `localStorage`), 409 com a explicação do rascunho; teste 13 completo e a navegação do topo do computador conforme a seção 16.2; 30 testes novos (279 no total) |
 
 ## Divergências encontradas (spec x código)
 
@@ -37,7 +38,9 @@ Nada do backend é alterado. Cada lacuna entra aqui com a mitigação adotada no
 
 | # | Lacuna | Mitigação no front |
 |---|---|---|
-| (nenhuma até aqui) | | |
+| 1 | Cardápio em rascunho não é consultável pelo painel: `GET /cardapios/hoje` dá 404 para rascunho e não há listagem nem `PUT` para trocar as opções (seção 16, item 4) | Guarda o id do cardápio criado no `localStorage` (`kf:cardapio-hoje`, com o dia de Brasília) e o reencontra por `GET /cardapios/{id}`. Rascunho criado em outro dispositivo dá 409, e a tela mostra a mensagem da API mais a explicação. **Pedido ao backend:** `GET /cardapios/hoje` (ou rota própria) devolver o rascunho a quem tem `GerenciarCardapio`, e um `PUT` para trocar as opções de um rascunho |
+| 2 | `GET /pedidos` devolve só o resumo; itens, endereço, referência, observação e troco exigem uma chamada por pedido (seção 16, item 9) | Detalhe buscado sob demanda por pedido visível, com cache sem expiração por id; o polling da lista não o refaz. **Pedido ao backend, se pesar:** incluir os itens no resumo ou aceitar um parâmetro para isso |
+| 3 | `GET /pedidos/{id}` exige `VerPedidos`, então o cliente não consegue recarregar o próprio pedido (seção 16, item 10) | A confirmação usa a resposta do `POST /pedidos`, guardada em `sessionStorage` (`kf:ultimo-pedido`) para sobreviver a um recarregamento acidental |
 
 ## Decisões tomadas
 
@@ -83,7 +86,7 @@ Decisões marcadas como "decisão minha" na spec seguem o padrão que a própria
 | 36 | "Tamanho do meio" é o índice `floor((n - 1) / 2)` (n = 3 dá o segundo; n = 1 ou 2 dá o primeiro) | A spec só define 3 ou menos; o resto generaliza sem mudar esses casos |
 | 37 | O telefone vai para a API só com dígitos | A API aceita com ou sem máscara; só dígitos evita surpresa |
 | 38 | Nos testes, o `QueryClient` não repete falhas (`retry: false`) | A repetição de 1 s do app atrasaria cada teste de erro; o comportamento do app não muda |
-| 39 | Os `TopNavPill` do cabeçalho do computador rolam até as seções "Marmita", "Pra acompanhar" e "Meu pedido" (a spec não diz quais são os itens) | É a navegação mais útil numa página única; a pílula ativa é a última tocada |
+| 39 | Navegação do topo do computador: "Marmitas" (rola ao produto), "Bebidas" e "Sobremesas" (rolam a "Pra acompanhar" filtrado). Bebidas e Sobremesas só aparecem se houver o que vender na categoria | Padrão da seção 16.2; "Vegetariano" não existe no backend |
 | 40 | O stepper de quantidade do produto no computador cria UMA linha de marmita com essa quantidade (`adicionarMarmita(..., quantidade)`) | A spec 9.1 diz que o item de marmita tem quantidade; o botão "Adicionar" mostra o preço já multiplicado |
 | 41 | No carrinho lateral aparece a mesma mensagem de pendência do celular, acima de "Confirmar pedido" | O botão fica desabilitado quando falta dado; sem a frase a pessoa não saberia o que falta |
 | 42 | Os ingredientes do computador não são agrupados por categoria (um bloco só, filtrado pela pílula), como a spec 9.2 descreve; o limite por categoria continua valendo e só aparece no contador total | A spec só pede o grupo "até N" no celular (tela 2) |
@@ -94,6 +97,10 @@ Decisões marcadas como "decisão minha" na spec seguem o padrão que a própria
 | 47 | O selo da loja no cabeçalho só aparece depois do primeiro `GET /restaurante` | Mostrar "fechada" por engano antes de saber o estado seria pior que esperar |
 | 48 | O botão "Chamar no WhatsApp" ganhou `aria-label` com o nome do cliente e o número do pedido | Numa tabela com vários botões iguais, o leitor de tela precisa distinguir qual é de quem |
 | 49 | A ordem da lista de pedidos é reforçada no cliente (hora e número, mais recente primeiro) | A spec diz que a API já devolve assim; a tela não depende disso |
+| 50 | A tela do cardápio mostra o texto "Ainda não há cardápio de hoje. Escolha as opções e crie o cardápio." no estado 1, e "Nenhuma opção cadastrada ainda..." se não houver opção | A seção 11.3 não dá texto para esses dois casos |
+| 51 | No celular, o botão de ação do cardápio fica `sticky` acima da barra de abas (`bottom-14`), não `fixed` | Evita sobrepor a barra de abas e não precisa de padding extra no fim da lista |
+| 52 | A opção do cardápio usa `aria-label` só com o nome, para o nome acessível do checkbox não incluir a categoria e o preço | Os dois textos continuam visíveis |
+| 53 | Salvar o WhatsApp mostra o Banner "WhatsApp atualizado." | A seção 11.2 não dá confirmação de sucesso; sem ela a pessoa não sabe se salvou |
 
 ## Riscos e pendências de entrega
 

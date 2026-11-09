@@ -75,6 +75,26 @@ describe('pagina unica do computador', () => {
     expect(secao.queryByText('Carne 1')).not.toBeInTheDocument()
   })
 
+  it('navegacao do topo: Marmitas, Bebidas e Sobremesas; as duas ultimas filtram "Pra acompanhar" pela categoria', async () => {
+    servirCliente()
+    await abrir()
+    const topo = within(screen.getByRole('navigation', { name: 'Seções' }))
+    const acompanhar = () => within(screen.getByRole('region', { name: 'Pra acompanhar' }))
+
+    expect(topo.getAllByRole('button').map((botao) => botao.textContent)).toEqual(['Marmitas', 'Bebidas', 'Sobremesas'])
+    expect(topo.getByRole('button', { name: 'Marmitas' })).toHaveAttribute('aria-current', 'page')
+    expect(acompanhar().getByText('Bebida 1')).toBeInTheDocument()
+    expect(acompanhar().getByText('Sobremesa 1')).toBeInTheDocument()
+
+    await userEvent.click(topo.getByRole('button', { name: 'Sobremesas' }))
+    expect(topo.getByRole('button', { name: 'Sobremesas' })).toHaveAttribute('aria-current', 'page')
+    expect(acompanhar().getByText('Sobremesa 1')).toBeInTheDocument()
+    expect(acompanhar().queryByText('Bebida 1')).not.toBeInTheDocument()
+
+    await userEvent.click(topo.getByRole('button', { name: 'Marmitas' }))
+    expect(acompanhar().getByText('Bebida 1')).toBeInTheDocument() // Marmitas volta a mostrar tudo
+  })
+
   it('limites da marmita valem aqui tambem: contador e bloqueio por categoria e total', async () => {
     servirCliente()
     await abrir()
