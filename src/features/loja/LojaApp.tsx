@@ -5,9 +5,10 @@ import { RequerAba, RequerSessao } from '../auth/Guardas'
 import { Pendente } from '../Pendente'
 import { ContaPage } from './ContaPage'
 import { IndiceDaLoja } from './IndiceDaLoja'
+import { PedidosPage } from './pedidos/PedidosPage'
 
 // Todo o `/loja/*` e carregado sob demanda (code splitting): o cliente nao baixa o painel nem a logica de login.
-// O AuthProvider vive aqui dentro, so para a loja. As telas das abas entram nas fases 6 a 9.
+// O AuthProvider vive aqui dentro, so para a loja. As abas Hoje, Cardapio, Cadastros e Usuarios entram nas fases 7 a 9.
 export function LojaApp() {
   return (
     <AuthProvider>
@@ -19,7 +20,7 @@ export function LojaApp() {
             path="pedidos"
             element={
               <RequerAba aba="pedidos">
-                <Pendente nome="Pedidos" />
+                <PedidosPage />
               </RequerAba>
             }
           />

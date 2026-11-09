@@ -8,7 +8,7 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 
 ## Fase atual
 
-**Fase 6: loja, casca e aba Pedidos** (em andamento)
+**Fase 7: loja, abas Hoje e Cardápio** (em andamento)
 
 ## Fases concluídas
 
@@ -18,7 +18,8 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 | 2. Átomos e catálogo `/_ui` | `1c56700` | 20 átomos em `components/ui/` com as medidas da seção 8 (Logo, Button/LinkButton, FilterPill, TopNavPill, SizeButton, ChoiceButton, SizeCard, IngredientTile, Stepper, LineStepper, Field/PasswordField/TextAreaField, ListCheckbox, Banner, Chip, Dialog, ClientStatusBadge, OrderStatusPill, StatusButton, AvailabilityToggle, Tabs, BottomTabBar, MarmitaIllustration), ícones SVG, `lib/` (categoriaConfig, formatar, statusPedido, useIsDesktop), catálogo `/_ui` só em dev, 120 testes |
 | 3. Autenticação | `b9eaf34` | `AuthProvider` (só dentro de `/loja`), login `/loja/entrar`, sessão em `sessionStorage`, guardas `RequerSessao`/`RequerAba`, `GET /auth/eu` (foco, 60 s, após 403), expiração por horário, `UserMenu`, `LojaLayout` com abas por permissão, `SemAcesso`, `ContaPage` (trocar senha), `lib/permissoes.ts`, hooks `useSessao`/`usePermissao`/`usePermissoes`/`useEhGestor` e `<Pode>`; testes 7, 8 e 9 (33 novos, 153 no total) |
 | 4. Cliente celular | `9dc2b4f` | Telas 1 a 4 com dados reais (`CardapioMobile`, `MontarMobile`, `PedidoMobile`, `ConfirmacaoPage`), carrinho e formulário em Context + reducer (`ClienteProvider`), `useDadosDoCliente` (restaurante, cardápio de hoje e tamanhos; reconsulta a cada 60 s e no foco), `useMontagem`, `useFinalizarPedido`, `FormularioDoPedido` e `LinhaDoCarrinho` (já compartilhados com a fase 5), regras puras em `lib/regrasMarmita`, `lib/carrinho` e `lib/pedidoCliente`; testes 1, 2, 3, 11 e 12 (58 novos, 211 no total) |
-| 5. Cliente desktop | (hash no commit seguinte) | `PaginaDesktop` (filtros, produto, "Pra acompanhar" e carrinho lateral com o mesmo `FormularioDoPedido` do celular, "Confirmar pedido"), escolha do layout por `useIsDesktop` em `PaginaInicial`, `/montar/:id` vira `/?tamanho=:id` e `/pedido` volta a `/` no computador, confirmação centralizada (max 680) com os botões no corpo; 13 testes novos (224 no total) |
+| 5. Cliente desktop | `05506e3` | `PaginaDesktop` (filtros, produto, "Pra acompanhar" e carrinho lateral com o mesmo `FormularioDoPedido` do celular, "Confirmar pedido"), escolha do layout por `useIsDesktop` em `PaginaInicial`, `/montar/:id` vira `/?tamanho=:id` e `/pedido` volta a `/` no computador, confirmação centralizada (max 680) com os botões no corpo; 13 testes novos (224 no total) |
+| 6. Loja: casca e aba Pedidos | (hash no commit seguinte) | `LojaLayout` com cabeçalho (Logo + "Painel da loja", `StatusButton` e `UserMenu`), abas por permissão e banner de erro de mutação (`AvisosDaLoja`); `PedidosPage` com filtros por contagem, tabela (computador) e cartões (celular), detalhe sob demanda com cache sem expiração, polling de 30 s, anúncio de pedido novo, "Chamar no WhatsApp"; coluna `AcabouAlgumaCoisa` (EsgotarOpcoes) com atualização otimista; testes 5 e 9 completos e o selo da loja; 25 testes novos (249 no total) |
 
 ## Divergências encontradas (spec x código)
 
@@ -86,6 +87,13 @@ Decisões marcadas como "decisão minha" na spec seguem o padrão que a própria
 | 40 | O stepper de quantidade do produto no computador cria UMA linha de marmita com essa quantidade (`adicionarMarmita(..., quantidade)`) | A spec 9.1 diz que o item de marmita tem quantidade; o botão "Adicionar" mostra o preço já multiplicado |
 | 41 | No carrinho lateral aparece a mesma mensagem de pendência do celular, acima de "Confirmar pedido" | O botão fica desabilitado quando falta dado; sem a frase a pessoa não saberia o que falta |
 | 42 | Os ingredientes do computador não são agrupados por categoria (um bloco só, filtrado pela pílula), como a spec 9.2 descreve; o limite por categoria continua valendo e só aparece no contador total | A spec só pede o grupo "até N" no celular (tela 2) |
+| 43 | Erros de mutação da loja (abrir/fechar, esgotar) vão para um banner no topo do conteúdo por um contexto (`AvisosDaLoja`), ao lado do aviso de 403 | A seção 11 pede "Banner de erro no topo da área de conteúdo" para toda mutação; um contexto evita passar props por todas as abas |
+| 44 | `AcabouAlgumaCoisa` já nasce com os três layouts (`coluna`, `grade`, `lista`); a fase 7 só o reutiliza na aba Hoje | A coluna da aba Pedidos (seção 11.1) e o bloco da aba Hoje (11.2) são a mesma lista, com a mesma regra otimista |
+| 45 | Respostas de fundo no servidor MSW dos testes (`GET /restaurante`, `GET /pedidos`, `GET /cardapios/hoje` 404) | O cabeçalho e a aba Pedidos fazem essas leituras em qualquer teste logado; um teste que se importa registra o próprio handler, que tem prioridade. Chamada fora dessas continua dando erro |
+| 46 | `Tabs` e `BottomTabBar` usam o rótulo "Seções da loja" | Seção 15, item 6 |
+| 47 | O selo da loja no cabeçalho só aparece depois do primeiro `GET /restaurante` | Mostrar "fechada" por engano antes de saber o estado seria pior que esperar |
+| 48 | O botão "Chamar no WhatsApp" ganhou `aria-label` com o nome do cliente e o número do pedido | Numa tabela com vários botões iguais, o leitor de tela precisa distinguir qual é de quem |
+| 49 | A ordem da lista de pedidos é reforçada no cliente (hora e número, mais recente primeiro) | A spec diz que a API já devolve assim; a tela não depende disso |
 
 ## Riscos e pendências de entrega
 

@@ -61,7 +61,7 @@ describe('abas por permissao', () => {
   it('abrir uma aba sem permissao leva para a primeira permitida', async () => {
     const { roteador } = await abrirComo('Funcionario', ['VerPedidos'], '/loja/usuarios')
 
-    expect(await screen.findByText('Pedidos: em construção.')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Pedidos de hoje' })).toBeInTheDocument()
     expect(roteador.state.location.pathname).toBe('/loja/pedidos')
   })
 
@@ -98,7 +98,7 @@ describe('abas por permissao', () => {
 
     // a aba atual deixou de ser permitida: vai para a primeira permitida
     await waitFor(() => expect(nomesDasAbas()).toEqual(['Pedidos']))
-    expect(await screen.findByText('Pedidos: em construção.')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Pedidos de hoje' })).toBeInTheDocument()
     expect(roteador.state.location.pathname).toBe('/loja/pedidos')
   })
 
@@ -117,7 +117,7 @@ describe('menu do usuario', () => {
     guardarSessao()
     responderEu(() => criarUsuario({ nome: 'Ana Souza', email: 'ana@teste.local', papel: 'Dono', permissoes: ['VerPedidos'] }))
     renderizarLoja('/loja/pedidos')
-    await screen.findByText('Pedidos: em construção.')
+    await screen.findByRole('heading', { name: 'Pedidos de hoje' })
 
     const gatilho = screen.getByRole('button', { name: 'Conta de Ana Souza' })
     expect(gatilho).toHaveAttribute('aria-expanded', 'false')
@@ -141,12 +141,12 @@ describe('menu do usuario', () => {
     guardarSessao()
     responderEu(() => criarUsuario({ permissoes: ['VerPedidos'] }))
     renderizarLoja('/loja/pedidos')
-    await screen.findByText('Pedidos: em construção.')
+    await screen.findByRole('heading', { name: 'Pedidos de hoje' })
 
     await userEvent.click(screen.getByRole('button', { name: /Conta de/ }))
     expect(screen.getByRole('group', { name: 'Menu da conta' })).toBeInTheDocument()
 
-    await userEvent.click(screen.getByText('Pedidos: em construção.'))
+    await userEvent.click(screen.getByRole('heading', { name: 'Pedidos de hoje' }))
     expect(screen.queryByRole('group', { name: 'Menu da conta' })).not.toBeInTheDocument()
   })
 })

@@ -44,7 +44,7 @@ describe('login e sessao', () => {
     const { roteador } = renderizarLoja('/loja/entrar')
 
     await preencherEEnviar('pessoa@teste.local', 'qualquer-senha')
-    await screen.findByText('Pedidos: em construção.')
+    await screen.findByRole('heading', { name: 'Pedidos de hoje' })
 
     expect(JSON.parse(sessionStorage.getItem('kf:sessao') ?? '{}')).toMatchObject({ token: TOKEN_DE_TESTE })
     expect(localStorage.length).toBe(0)
@@ -114,7 +114,7 @@ describe('login e sessao', () => {
     renderizarLoja('/loja/entrar')
 
     await preencherEEnviar('pessoa@teste.local', 'qualquer-senha')
-    await screen.findByText('Pedidos: em construção.')
+    await screen.findByRole('heading', { name: 'Pedidos de hoje' })
 
     expect(cabecalhosDoLogin).toEqual([null])
     expect(cabecalhosDoEu.length).toBeGreaterThan(0)
@@ -134,7 +134,7 @@ describe('login e sessao', () => {
     guardarSessao(daquiA(400))
     responderEu(() => criarUsuario({ permissoes: ['VerPedidos'] }))
     renderizarLoja('/loja/pedidos')
-    expect(await screen.findByText('Pedidos: em construção.')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Pedidos de hoje' })).toBeInTheDocument()
 
     expect(await screen.findByText('Sua sessão expirou. Entre de novo.', {}, { timeout: 3000 })).toBeInTheDocument()
     expect(sessionStorage.getItem('kf:sessao')).toBeNull()
@@ -153,7 +153,7 @@ describe('login e sessao', () => {
     guardarSessao()
     responderEu(() => criarUsuario({ permissoes: ['VerPedidos'] }))
     const { queryClient, roteador } = renderizarLoja('/loja/pedidos')
-    await screen.findByText('Pedidos: em construção.')
+    await screen.findByRole('heading', { name: 'Pedidos de hoje' })
     queryClient.setQueryData(['pedidos'], [{ id: 1 }])
 
     await userEvent.click(screen.getByRole('button', { name: /Conta de/ }))
