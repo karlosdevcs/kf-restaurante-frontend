@@ -50,12 +50,16 @@
 
 /*
  * Area de toque minima de 44px (spec, seção 15) para controles visualmente menores.
- * O pseudo-elemento invisivel estende a area clicavel sem mexer no desenho. O elemento precisa ser `relative`.
+ * O pseudo-elemento invisivel estende a area clicavel sem mexer no desenho. As utilidades ja trazem `position: relative`:
+ * sem isso o ::after absoluto se ancorava num ancestral distante e cobria a tela, roubando o clique de outros botoes
+ * (achado no teste com navegador real: "Fazer outro pedido" bloqueava "Enviar no WhatsApp").
  *   .toque-v : so na vertical; informe a altura visual em --h (ex.: style={{ '--h': '36px' }})
  *   .toque-q : nos dois eixos (botoes redondos); informe o lado em --lado
  * O min(0px, ...) garante que controles que ja tem 44px ou mais nao encolham.
  */
 @utility toque-v {
+  position: relative;
+
   &::after {
     content: '';
     position: absolute;
@@ -64,6 +68,8 @@
 }
 
 @utility toque-q {
+  position: relative;
+
   &::after {
     content: '';
     position: absolute;

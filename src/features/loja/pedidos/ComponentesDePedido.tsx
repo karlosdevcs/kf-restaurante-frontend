@@ -148,9 +148,9 @@ export function TabelaDePedidos({ pedidos }: { pedidos: PedidoResumo[] }) {
                   <p className="text-[12px] text-muted">{formatTelefone(pedido.telefone)}</p>
                 </td>
                 <td className="px-4 py-[14px] text-[14px]">
-                  <p>
+                  <div>
                     <ItensDoPedido id={pedido.id} />
-                  </p>
+                  </div>
                   <p>
                     <LinhaDeEntrega resumo={pedido} className="text-[12px] text-muted" />
                   </p>
@@ -186,9 +186,9 @@ export function CartoesDePedidos({ pedidos }: { pedidos: PedidoResumo[] }) {
           <p>
             <span className="text-[14px] font-semibold">{pedido.nomeCliente}</span> <span className="text-[12px] text-muted">{formatTelefone(pedido.telefone)}</span>
           </p>
-          <p className="text-[13px] leading-[1.4]">
+          <div className="text-[13px] leading-[1.4]">
             <ItensDoPedido id={pedido.id} />
-          </p>
+          </div>
           <ReferenciaEObservacao id={pedido.id} />
           <div className="flex items-center justify-between gap-3 border-t border-line pt-2">
             <LinhaDeEntrega resumo={pedido} className="text-[12px] text-muted" />

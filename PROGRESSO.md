@@ -8,7 +8,7 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 
 ## Fase atual
 
-**Fase 11: testes da seção 18, README e checklist de aceite** (em andamento)
+**Todas as 11 fases concluídas.** Falta só o commit final de documentação com o hash da fase 11.
 
 ## Fases concluídas
 
@@ -23,7 +23,8 @@ Se a sessão for interrompida ou compactada: **releia este arquivo e `spec-front
 | 7. Loja: abas Hoje e Cardápio | `10170db` | `HojePage` (cartão de status com foco no WhatsApp quando abrir é recusado, cartão do WhatsApp com erro do 400 junto do campo, "Acabou alguma coisa?" em grade ou lista); `CardapioPage` com os 4 estados (sem cardápio, rascunho, publicado, fechado), descoberta do cardápio de hoje (GET /cardapios/hoje, depois o id do `localStorage`), 409 com a explicação do rascunho; teste 13 completo e a navegação do topo do computador conforme a seção 16.2; 30 testes novos (279 no total) |
 | 8. Loja: aba Cadastros | `9913bf1` | `CadastrosPage` (computador: Opções e Tamanhos lado a lado; celular: duas `ChoiceButton`), `OpcoesSecao` com tabela/linhas e formulário (regra do preço: Bebida e Sobremesa exigem, componente só com "Vender também avulsa"; 409 abaixo do Nome, 400 em Banner), `TamanhosSecao` com cartões, formulário e limites por categoria (`PUT /tamanhos/{id}/limites` substitui tudo); `lib/cadastros` e `lib/dinheiro`; 36 testes novos (315 no total) |
 | 9. Loja: aba Usuários | `9fd6679` | `UsuariosPage` (tabela no computador, cartões no celular, marca "Você", só "Minha conta" na própria linha), formulários "Novo usuário" e "Editar" com a hierarquia espelhada (`lib/usuarios`: papéis que cada um cria, permissões que cada um concede, checkbox habilitado se quem edita tem a permissão ou o editado já a tinha), `Dialog` de desativar e de redefinir senha, ativar sem confirmação; teste 10 completo; 23 testes novos (338 no total); `Pendente.tsx` removido |
-| 10. Estados e acessibilidade | (hash no commit seguinte) | Auditoria da seção 15: foco no título ao trocar de tela no celular (`useFocoNoTitulo`), foco no primeiro campo dos formulários, `<title>` por rota (`useTituloDaPagina`), anúncio aria-live da mudança de aba por falta de permissão, área de toque dos botões de texto; os estados de carregamento, vazio e erro da seção 14 já nasceram com cada tela e ganharam testes de erro para Opções, Tamanhos e Usuários; teste estático das regras de segurança (`seguranca.test.ts`); 24 testes novos (362 no total) |
+| 10. Estados e acessibilidade | `ced700a` | Auditoria da seção 15: foco no título ao trocar de tela no celular (`useFocoNoTitulo`), foco no primeiro campo dos formulários, `<title>` por rota (`useTituloDaPagina`), anúncio aria-live da mudança de aba por falta de permissão, área de toque dos botões de texto; os estados de carregamento, vazio e erro da seção 14 já nasceram com cada tela e ganharam testes de erro para Opções, Tamanhos e Usuários; teste estático das regras de segurança (`seguranca.test.ts`); 24 testes novos (362 no total) |
+| 11. Testes, README e aceite | (hash no commit de documentação) | Os 13 testes da seção 18 estão cobertos (mapa em "Cobertura da seção 18", mais abaixo), README completo (rotas, abas por permissão, decisões, limitações, lacunas) e verificação contra a **API real** (43 checagens de contrato por script e 54 verificações de interface com o Edge, sem screenshots) que achou e corrigiu um bug de CSS que o jsdom não mostra; 365 testes no total |
 
 ## Divergências encontradas (spec x código)
 
@@ -31,7 +32,8 @@ O código do backend vence a spec; cada divergência é registrada aqui.
 
 | # | Onde | Spec diz | Código diz | O que foi feito |
 |---|---|---|---|---|
-| (nenhuma até aqui) | | | | |
+| 1 | Mensagem de 401 e 403 sem corpo explicativo (seção 10.3) | "A mensagem para a tela é `detail` e, se não houver, `title`" | `UseStatusCodePages()` devolve `title` em inglês ("Unauthorized", "Forbidden") e nenhum `detail` | Sem `detail`, a tela usa um texto em português por status (401 "Você precisa entrar para continuar.", 403 "Você não tem permissão para fazer isso.", 404, 409, 5xx) em vez do `title` em inglês. Com `detail` (400, 403 de hierarquia, 409...), usa o `detail` da API |
+| 2 | Dados do banco de desenvolvimento (não é divergência do código) | Tamanho do meio, ou o primeiro, é o padrão (seção 9.3) | O banco do usuário tem os tamanhos G (R$ 0,00, limite 0) e M (R$ 20,00, limite 3) | A tela segue a regra da spec: abre em "Marmita G" (inutilizável) e o cliente precisa tocar em M. É sobra de testes antigos; corrigir o tamanho G na aba Cadastros resolve |
 
 Conferido na fase 0: as 33 rotas da seção 13 batem com as 33 de `EndpointsProtegidosTests` (7 abertas, 4 "logado", 7 de usuários, 15 por permissão).
 
@@ -119,11 +121,56 @@ Decisões marcadas como "decisão minha" na spec seguem o padrão que a própria
 | 66 | O aviso de aba sem permissão ("Você não tem acesso a esta área. Abrimos Pedidos.") sai por uma região `aria-live` do layout da loja, também quando a pessoa abre direto uma URL que não pode | Seção 15.6 pede o anúncio; o texto não existe na spec |
 | 67 | `seguranca.test.ts` lê os fontes por `import.meta.glob(..., { query: '?raw' })` em vez de `node:fs`; não confere o `.env.example` | Evita instalar `@types/node` (biblioteca fora da lista da seção 3) e o Vite bloqueia a importação de `.env*`. A regra "só `VITE_API_URL`" é conferida no código que a lê |
 | 68 | Os botões de texto ("Tentar de novo", "Ir para o cardápio") ganharam `min-h-[44px]` | Seção 15.4: área de toque de 44px |
+| 69 | Bug de CSS achado só no navegador real: `toque-v` e `toque-q` usavam `::after` absoluto sem `position: relative` no próprio elemento, e "Fazer outro pedido" (sem a classe `relative`) cobria a tela e roubava o clique de "Enviar no WhatsApp" no computador. As duas utilidades agora trazem o `relative`; `estilos.test.ts` garante | O jsdom não processa CSS, então os 362 testes anteriores passavam. É o motivo de ter rodado a interface contra a API real |
+| 70 | `<p>` com `<div>` dentro (esqueleto do detalhe do pedido) virou `<div>` | O React avisava `validateDOMNesting` no navegador |
+| 71 | A verificação contra a API real só criou pedidos de teste e contas `@teste.local` (ver "Riscos e pendências") | Para não mexer em cadastros, cardápio e estado da loja do banco de desenvolvimento |
 
 ## Riscos e pendências de entrega
 
 - A pasta `referencia-conceito2/` (os 4 protótipos `.dc.html`) **não foi encontrada** na máquina nem dentro do `spec-frontend.zip`. A spec manda tratá-los só como leitura de medidas; a spec já traz tokens, medidas e textos. Se alguma medida faltar, vale a spec e o caso fica registrado aqui. Entregável 3 da seção 21 (colocar os 4 arquivos em `referencia-conceito2/`) fica **pendente**: o usuário precisa fornecê-los.
 
+- **Dados de teste que ficaram no banco de desenvolvimento** (a API não tem exclusão e eu não tive credencial de banco): 10 pedidos de hoje com o nome "E2E Teste Cliente" ou "E2E Teste Debug" (nº 20 a 29, ids 20 a 29) e 3 contas `@teste.local` (`e2e-superuser` ativa, `e2e-dono` e `e2e-func` desativadas). O estado de "esgotado" do cardápio foi restaurado. Para limpar, no psql, confira os nomes das tabelas e rode algo como `DELETE FROM "ItensDoPedido" WHERE "PedidoId" BETWEEN 20 AND 29; DELETE FROM "Pedidos" WHERE "Id" BETWEEN 20 AND 29; DELETE FROM "Usuarios" WHERE "Email" LIKE '%@teste.local';`. O superuser `e2e-superuser` nasceu de variáveis de ambiente temporárias (a senha foi descartada); apague a conta junto.
+- **Não verificado com ferramenta:** navegação por teclado completa nas duas áreas e contraste medido (sem axe nem leitor de tela). Foco, rótulos, semântica e os tokens da seção 15 estão cobertos por testes e por revisão; a conferência manual fica com o usuário.
+- **Não exercido contra a API real pela interface** (só por testes e checagem de contrato): abrir e fechar a loja, publicar e fechar cardápio, criar e editar opções e tamanhos, alterar o WhatsApp, criar e editar usuários e trocar a própria senha.
+
 ## Critérios de aceite (seção 20)
 
-Conferidos só ao final da fase 11.
+**Conferidos ao final da fase 11.** `[x]` passou; `[~]` passou em parte (o que faltou está dito).
+
+- [~] Os 4 fluxos (cliente celular, cliente desktop, loja celular, loja desktop) contra a API real: o cliente no computador (1440px) e no celular (390px) fez pedido de verdade, e a loja no computador e no celular entrou, listou pedidos, marcou esgotado (refletiu no cliente e foi desfeito), viu o cardápio e os usuários e saiu. Falta o que está em "Não exercido contra a API real", acima.
+- [x] Sem login, `/loja` leva a `/loja/entrar`; o cliente funciona sem login e nenhuma chamada dele levou `Authorization` (navegador real).
+- [x] Login correto entra na primeira aba permitida; credencial errada mostra a mensagem da API, sem pistas (a API dá a mesma mensagem para e-mail inexistente e senha errada).
+- [x] Abas e blocos por permissão; mudar permissões reflete após `GET /auth/eu` com o mesmo token (testes e checagem real de `/auth/eu`).
+- [x] 401 desloga com mensagem; 403 mostra mensagem sem deslogar; nenhuma tela em branco (testes; formato dos erros conferido na API real).
+- [x] Sair limpa a sessão e o cache; voltar no navegador não mostra dados da loja (navegador real).
+- [x] Dono cria só funcionário e só concede permissão que tem; superuser cria qualquer papel; ninguém desativa a si mesmo (testes de interface e checagem real da API).
+- [x] Trocar a própria senha funciona e o aviso do bloqueio aparece (teste de interface; API real: 204, 400 "Senha atual incorreta." e 400 de senha curta).
+- [x] Nenhum dado fictício dos protótipos no código ou na tela (os textos de exemplo vêm da própria spec; os dados de teste são genéricos).
+- [x] Limites de total e por categoria bloqueiam e liberam, e a troca de tamanho segue a seção 12.2 (testes).
+- [x] Pedido finalizado aparece como "Não enviado" e vira "Enviado" depois do clique em "Enviar no WhatsApp" (navegador real: nº 26 e 27).
+- [x] A mensagem mostrada é exatamente a `mensagemWhatsApp` e o botão abre o `linkWhatsApp` (teste compara o texto idêntico; o navegador real abriu a nova aba do WhatsApp).
+- [x] "Esgotado" na loja reflete no cliente (navegador real).
+- [x] Loja fechada ou cardápio encerrado bloqueia o pedido, com faixa e selo (testes de celular e computador; não fechei a loja do banco real).
+- [x] Todo erro 400, 401, 403, 404, 409 e de rede tem mensagem legível, sem `alert` e sem tela em branco (testes e teste estático).
+- [~] Teclado, foco visível, rótulos e contraste: foco, rótulos e semântica por testes; navegação completa por teclado e contraste medido não foram conferidos com ferramenta.
+- [x] Layouts em 390, 768, 1024 e 1440px sem rolagem horizontal da página (navegador real: cliente, login e as abas da loja).
+- [x] `npm run build`, `npm run lint` e `npm test` passam sem aviso (365 testes).
+
+### Cobertura da seção 18
+
+| # | Onde |
+|---|---|
+| 1 | `lib/clienteLogica.test.ts` (regras da marmita) |
+| 2 | `lib/clienteLogica.test.ts` (validação do formulário) |
+| 3 | `lib/clienteLogica.test.ts` (payload) |
+| 4 | `lib/lib.test.ts` (categoriaConfig) |
+| 5 | `lib/lib.test.ts` e `features/loja/pedidos/pedidos.test.tsx` |
+| 6 | `lib/lib.test.ts` |
+| 7 | `features/auth/sessao.test.tsx` |
+| 8 | `features/auth/sessao.test.tsx` e `api/client.test.ts` |
+| 9 | `features/auth/permissoes.test.tsx`, `features/loja/pedidos/pedidos.test.tsx` (StatusButton e coluna "Acabou alguma coisa?") e `components/ui/Loja.test.tsx` |
+| 10 | `features/loja/usuarios/usuarios.test.tsx` |
+| 11 | `features/cliente/clienteCelular.test.tsx` e `features/cliente/clienteDesktop.test.tsx` |
+| 12 | `features/cliente/clienteCelular.test.tsx` e `features/cliente/clienteDesktop.test.tsx` |
+| 13 | `features/loja/cardapio/cardapio.test.tsx` |
+
