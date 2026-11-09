@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import type { Cardapio, Opcao, Pedido, PedidoResumo, Restaurante } from '../api/tipos'
+import type { Cardapio, Opcao, PedidoResumo, Restaurante } from '../api/tipos'
 import { OPCOES } from './cliente'
 import { servidor } from './servidor'
 
@@ -13,7 +13,15 @@ export const RESUMO_NAO_ENVIADO: PedidoResumo = {
   telefone: '31988887777',
   status: 'Gerado',
   formaDePagamento: 'Dinheiro',
+  trocoPara: 100,
   tipoDeEntrega: 'Entrega',
+  endereco: 'Rua A, 10',
+  referencia: 'portão azul',
+  observacao: 'sem cebola',
+  itens: [
+    { nome: 'Marmita M', componentes: 'Arroz, Feijão', precoUnitario: 20, quantidade: 2, subtotal: 40 },
+    { nome: 'Bebida 1', componentes: null, precoUnitario: 6, quantidade: 1, subtotal: 6 },
+  ],
   total: 65,
 }
 
@@ -25,37 +33,13 @@ export const RESUMO_ENVIADO: PedidoResumo = {
   telefone: '31977776666',
   status: 'Enviado',
   formaDePagamento: 'Pix',
+  trocoPara: null,
   tipoDeEntrega: 'Retirada',
+  endereco: null,
+  referencia: null,
+  observacao: null,
+  itens: [{ nome: 'Prato 1', componentes: null, precoUnitario: 20, quantidade: 1, subtotal: 20 }],
   total: 20,
-}
-
-function detalheDe(resumo: PedidoResumo, extra: Partial<Pedido>): Pedido {
-  return {
-    ...resumo,
-    trocoPara: null,
-    endereco: null,
-    referencia: null,
-    observacao: null,
-    cardapioId: 5,
-    itens: [],
-    mensagemWhatsApp: 'mensagem',
-    linkWhatsApp: null,
-    ...extra,
-  }
-}
-
-export const DETALHES: Record<number, Pedido> = {
-  1: detalheDe(RESUMO_NAO_ENVIADO, {
-    itens: [
-      { nome: 'Marmita M', componentes: 'Arroz, Feijão', precoUnitario: 20, quantidade: 2, subtotal: 40 },
-      { nome: 'Bebida 1', componentes: null, precoUnitario: 6, quantidade: 1, subtotal: 6 },
-    ],
-    endereco: 'Rua A, 10',
-    referencia: 'portão azul',
-    observacao: 'sem cebola',
-    trocoPara: 100,
-  }),
-  2: detalheDe(RESUMO_ENVIADO, { itens: [{ nome: 'Prato 1', componentes: null, precoUnitario: 20, quantidade: 1, subtotal: 20 }] }),
 }
 
 export interface CenarioDaLoja {
@@ -90,10 +74,10 @@ export function servirLoja(sobrescrever: Partial<CenarioDaLoja> = {}): CenarioDa
       return HttpResponse.json(cenario.lista)
     }),
     http.get(`${API}/pedidos/:id`, ({ params }) => {
+      // a lista ja traz os itens: o painel nao deve mais chamar o detalhe de cada pedido
       const id = Number(params['id'])
       cenario.chamadas.detalhes[id] = (cenario.chamadas.detalhes[id] ?? 0) + 1
-      const detalhe = DETALHES[id]
-      return detalhe ? HttpResponse.json(detalhe) : new HttpResponse(null, { status: 404 })
+      return new HttpResponse(null, { status: 404 })
     }),
     http.get(`${API}/restaurante`, () => HttpResponse.json(cenario.restaurante)),
     http.post(`${API}/restaurante/abrir`, () => {

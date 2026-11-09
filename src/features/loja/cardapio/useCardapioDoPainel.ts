@@ -1,36 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { buscarCardapio, buscarCardapioHoje, criarCardapio, fecharCardapio, publicarCardapio } from '../../../api/cardapios'
-import { ehApiError } from '../../../api/client'
+import { alterarOpcoesDoCardapio, buscarCardapioDoPainel, criarCardapio, fecharCardapio, publicarCardapio } from '../../../api/cardapios'
 import { listarOpcoes } from '../../../api/opcoes'
 import type { Cardapio } from '../../../api/tipos'
 import { useAvisosDaLoja } from '../AvisosDaLoja'
 import { CHAVE_DO_CARDAPIO_DE_HOJE } from '../useCardapioDeHoje'
-import { guardarCardapioDeHoje, lerCardapioDeHojeGuardado } from './cardapioGuardado'
 
 export const CHAVE_DO_CARDAPIO_DO_PAINEL = ['cardapio', 'painel'] as const
 
-// Como o painel descobre o cardapio de hoje (spec, 11.3): primeiro GET /cardapios/hoje (cobre Publicado e Fechado).
-// Se der 404, tenta o id guardado no localStorage com GET /cardapios/{id} (e o unico jeito de reencontrar um rascunho).
-// Sem id guardado (ou id que nao existe mais), nao ha cardapio conhecido: estado "sem cardapio".
-async function descobrirCardapioDeHoje(sinal: AbortSignal): Promise<Cardapio | null> {
-  const publicado = await buscarCardapioHoje(sinal)
-  if (publicado) return publicado
-
-  const idGuardado = lerCardapioDeHojeGuardado()
-  if (idGuardado === null) return null
-
-  try {
-    return await buscarCardapio(idGuardado, sinal)
-  } catch (erro) {
-    if (ehApiError(erro) && erro.status === 404) return null
-    throw erro
-  }
-}
-
+// O painel le o cardapio de hoje em qualquer situacao (GET /cardapios/hoje/painel), inclusive o rascunho que o cliente nao ve.
 export function useCardapioDoPainel() {
   return useQuery({
     queryKey: CHAVE_DO_CARDAPIO_DO_PAINEL,
-    queryFn: ({ signal }) => descobrirCardapioDeHoje(signal),
+    queryFn: ({ signal }) => buscarCardapioDoPainel(signal),
     staleTime: 0,
   })
 }
@@ -46,7 +27,6 @@ export function useAcoesDoCardapio() {
   const avisos = useAvisosDaLoja()
 
   const aplicar = (cardapio: Cardapio) => {
-    guardarCardapioDeHoje(cardapio.id)
     queryClient.setQueryData(CHAVE_DO_CARDAPIO_DO_PAINEL, cardapio)
     // o cliente e o bloco "Acabou alguma coisa?" leem GET /cardapios/hoje: reconsulta para refletir a nova situacao
     void queryClient.invalidateQueries({ queryKey: CHAVE_DO_CARDAPIO_DE_HOJE })
@@ -54,6 +34,13 @@ export function useAcoesDoCardapio() {
 
   const criar = useMutation({
     mutationFn: (opcoesIds: number[]) => criarCardapio({ opcoesIds }),
+    onMutate: () => avisos.limparErro(),
+    onSuccess: aplicar,
+  })
+
+  // troca as opcoes de um rascunho
+  const alterarOpcoes = useMutation({
+    mutationFn: ({ id, opcoesIds }: { id: number; opcoesIds: number[] }) => alterarOpcoesDoCardapio(id, { opcoesIds }),
     onMutate: () => avisos.limparErro(),
     onSuccess: aplicar,
   })
@@ -72,5 +59,5 @@ export function useAcoesDoCardapio() {
     onError: (erro) => avisos.mostrarErro(erro.message),
   })
 
-  return { criar, publicar, fechar }
+  return { criar, alterarOpcoes, publicar, fechar }
 }

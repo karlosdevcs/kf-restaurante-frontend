@@ -4,8 +4,6 @@ import { cx } from '../../../lib/cx'
 import { formatBRL, formatHora, formatTelefone } from '../../../lib/formatar'
 import { linhaDeEntregaEPagamento, linkParaChamarOCliente, resumoDosItens } from '../../../lib/pedidoLoja'
 import { contarPorStatus, type FiltroDeStatus } from '../../../lib/statusPedido'
-import { Esqueleto } from '../../cliente/Estados'
-import { usePedidoDetalhe } from './usePedidos'
 
 // ---------- filtros ----------
 
@@ -54,36 +52,22 @@ export function FiltrosDePedidos({
   )
 }
 
-// ---------- detalhe sob demanda ----------
+// ---------- itens, entrega, referencia e observacao ----------
+// A lista de pedidos ja traz tudo isso (nao ha mais uma chamada por pedido).
 
-// Itens, referencia e observacao vem do detalhe (o resumo da lista nao os traz): esqueleto de uma linha enquanto carrega.
-export function ItensDoPedido({ id, className }: { id: number; className?: string }) {
-  const detalhe = usePedidoDetalhe(id)
-
-  if (detalhe.isPending) return <Esqueleto className={cx('h-4 w-48 rounded-tamanho', className)} />
-  if (detalhe.isError) {
-    return (
-      <button type="button" onClick={() => void detalhe.refetch()} className="inline-flex min-h-[44px] items-center text-[12px] font-semibold text-brand">
-        Não foi possível carregar os itens. Tentar de novo
-      </button>
-    )
-  }
-  return <span className={className}>{resumoDosItens(detalhe.data.itens)}</span>
+export function ItensDoPedido({ pedido, className }: { pedido: PedidoResumo; className?: string }) {
+  return <span className={className}>{resumoDosItens(pedido.itens)}</span>
 }
 
-export function LinhaDeEntrega({ resumo, className }: { resumo: PedidoResumo; className?: string }) {
-  const detalhe = usePedidoDetalhe(resumo.id)
-  return <span className={className}>{linhaDeEntregaEPagamento(resumo, detalhe.data)}</span>
+export function LinhaDeEntrega({ pedido, className }: { pedido: PedidoResumo; className?: string }) {
+  return <span className={className}>{linhaDeEntregaEPagamento(pedido, pedido)}</span>
 }
 
-export function ReferenciaEObservacao({ id }: { id: number }) {
-  const detalhe = usePedidoDetalhe(id)
-  if (!detalhe.data) return null
-
+export function ReferenciaEObservacao({ pedido }: { pedido: PedidoResumo }) {
   return (
     <>
-      {detalhe.data.referencia ? <p className="text-[12px] text-muted">Ref.: {detalhe.data.referencia}</p> : null}
-      {detalhe.data.observacao ? <p className="text-[12px] text-muted">Obs.: {detalhe.data.observacao}</p> : null}
+      {pedido.referencia ? <p className="text-[12px] text-muted">Ref.: {pedido.referencia}</p> : null}
+      {pedido.observacao ? <p className="text-[12px] text-muted">Obs.: {pedido.observacao}</p> : null}
     </>
   )
 }
@@ -149,12 +133,12 @@ export function TabelaDePedidos({ pedidos }: { pedidos: PedidoResumo[] }) {
                 </td>
                 <td className="px-4 py-[14px] text-[14px]">
                   <div>
-                    <ItensDoPedido id={pedido.id} />
+                    <ItensDoPedido pedido={pedido} />
                   </div>
                   <p>
-                    <LinhaDeEntrega resumo={pedido} className="text-[12px] text-muted" />
+                    <LinhaDeEntrega pedido={pedido} className="text-[12px] text-muted" />
                   </p>
-                  <ReferenciaEObservacao id={pedido.id} />
+                  <ReferenciaEObservacao pedido={pedido} />
                 </td>
                 <td className="px-4 py-[14px] text-right font-bold whitespace-nowrap text-brand">{formatBRL(pedido.total)}</td>
                 <td className="px-4 py-[14px]">
@@ -187,11 +171,11 @@ export function CartoesDePedidos({ pedidos }: { pedidos: PedidoResumo[] }) {
             <span className="text-[14px] font-semibold">{pedido.nomeCliente}</span> <span className="text-[12px] text-muted">{formatTelefone(pedido.telefone)}</span>
           </p>
           <div className="text-[13px] leading-[1.4]">
-            <ItensDoPedido id={pedido.id} />
+            <ItensDoPedido pedido={pedido} />
           </div>
-          <ReferenciaEObservacao id={pedido.id} />
+          <ReferenciaEObservacao pedido={pedido} />
           <div className="flex items-center justify-between gap-3 border-t border-line pt-2">
-            <LinhaDeEntrega resumo={pedido} className="text-[12px] text-muted" />
+            <LinhaDeEntrega pedido={pedido} className="text-[12px] text-muted" />
             <span className="text-[16px] font-extrabold whitespace-nowrap text-brand">{formatBRL(pedido.total)}</span>
           </div>
           {pedido.status === 'Gerado' ? <ChamarNoWhatsApp pedido={pedido} celular /> : null}

@@ -1,15 +1,11 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { hojeEmBrasilia } from '../../../lib/formatar'
 import { cardapioDeTeste, servirCardapioDoPainel } from '../../../test/cardapioPainel'
 import { criarUsuario, guardarSessao, renderizarLoja, responderEu } from '../../../test/loja'
 import { definirDesktop, removerMatchMedia } from '../../../test/matchMedia'
 import { servirLoja } from '../../../test/pedidos'
 
-afterEach(() => {
-  removerMatchMedia()
-  localStorage.clear()
-})
+afterEach(() => removerMatchMedia())
 
 async function abrirCardapio(desktop = true) {
   definirDesktop(desktop)
@@ -21,6 +17,7 @@ async function abrirCardapio(desktop = true) {
 }
 
 const marcar = (nome: string) => userEvent.click(screen.getByRole('checkbox', { name: nome }))
+const marcadas = () => screen.getAllByRole('checkbox').filter((caixa) => caixa.getAttribute('aria-checked') === 'true')
 
 describe('estado 1: sem cardapio de hoje', () => {
   it('mostra todas as opcoes, contador e "Criar cardapio" desabilitado com 0 marcadas', async () => {
@@ -47,7 +44,7 @@ describe('estado 1: sem cardapio de hoje', () => {
     expect(screen.getByRole('checkbox', { name: 'Carne 1' })).not.toHaveTextContent('R$')
   })
 
-  it('criar envia as opcoes marcadas e passa para Rascunho, guardando so o id do dia', async () => {
+  it('criar envia as opcoes marcadas e passa para Rascunho', async () => {
     servirLoja()
     const cenario = servirCardapioDoPainel()
     await abrirCardapio()
@@ -61,24 +58,22 @@ describe('estado 1: sem cardapio de hoje', () => {
     expect(await screen.findByText('Rascunho')).toBeInTheDocument()
     expect(cenario.chamadas.criados).toEqual([[1, 7]])
     expect(screen.getByRole('button', { name: 'Publicar cardápio' })).toBeInTheDocument()
-    expect(JSON.parse(localStorage.getItem('kf:cardapio-hoje') ?? '{}')).toEqual({ data: hojeEmBrasilia(), id: 7 })
   })
 
-  it('409 ao criar: mostra a mensagem da API e a explicacao do rascunho que o painel nao acha', async () => {
+  it('409 ao criar mostra a mensagem da API e continua no estado 1', async () => {
     servirLoja()
-    servirCardapioDoPainel({ recusarCriacao: { status: 409, detail: 'Já existe um cardápio para a data 2026-11-08.' } })
+    servirCardapioDoPainel({ recusarCriacao: { status: 409, detail: 'Já existe um cardápio para a data 08/11/2026.' } })
     await abrirCardapio()
     await screen.findByRole('checkbox', { name: 'Carne 1' })
 
     await marcar('Carne 1')
     await userEvent.click(screen.getByRole('button', { name: 'Criar cardápio' }))
 
-    expect(await screen.findByText('Já existe um cardápio para a data 2026-11-08.')).toBeInTheDocument()
-    expect(screen.getByText('Esse cardápio está em rascunho e não pode ser aberto por este painel.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Criar cardápio' })).toBeInTheDocument() // continua no estado 1
+    expect(await screen.findByText('Já existe um cardápio para a data 08/11/2026.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Criar cardápio' })).toBeInTheDocument()
   })
 
-  it('outro erro ao criar mostra so a mensagem, sem a explicacao do 409', async () => {
+  it('outro erro ao criar mostra a mensagem da API', async () => {
     servirLoja()
     servirCardapioDoPainel({ recusarCriacao: { status: 400, detail: 'Escolha pelo menos uma opção.' } })
     await abrirCardapio()
@@ -88,54 +83,78 @@ describe('estado 1: sem cardapio de hoje', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Criar cardápio' }))
 
     expect(await screen.findByText('Escolha pelo menos uma opção.')).toBeInTheDocument()
-    expect(screen.queryByText(/rascunho e não pode ser aberto/)).not.toBeInTheDocument()
   })
 })
 
-describe('estado 2: rascunho', () => {
-  it('reencontra o rascunho pelo id guardado de hoje, lista as opcoes (so leitura) e oferece "Publicar cardapio"', async () => {
+describe('estado 2: rascunho (agora o painel o enxerga e pode trocar as opcoes)', () => {
+  it('o rascunho de hoje aparece direto, sem id guardado, com todas as opcoes e as do cardapio marcadas', async () => {
     servirLoja()
-    const cenario = servirCardapioDoPainel({ cardapio: cardapioDeTeste('Rascunho') })
-    localStorage.setItem('kf:cardapio-hoje', JSON.stringify({ data: hojeEmBrasilia(), id: 7 }))
+    servirCardapioDoPainel({ cardapio: cardapioDeTeste('Rascunho') })
     await abrirCardapio()
 
     expect(await screen.findByText('Rascunho')).toBeInTheDocument()
-    expect(cenario.chamadas.porId).toEqual([7])
     expect(screen.getByText('Escolha feita. O cliente só vê depois que você publicar.')).toBeInTheDocument()
-    expect(screen.getByText('Hoje não dá para trocar as opções de um cardápio criado.')).toBeInTheDocument()
+    expect(screen.getByText('Você pode trocar as opções até publicar.')).toBeInTheDocument()
+    expect(await screen.findAllByRole('checkbox')).toHaveLength(9)
+    expect(marcadas().map((caixa) => caixa.getAttribute('aria-label'))).toEqual(['Carne 1', 'Acompanhamento 1', 'Bebida 1'])
     expect(screen.getByText('3 opções no cardápio')).toBeInTheDocument()
-    const caixas = screen.getAllByRole('checkbox')
-    expect(caixas).toHaveLength(3)
-    for (const caixa of caixas) {
-      expect(caixa).toBeDisabled()
-      expect(caixa).toHaveAttribute('aria-checked', 'true')
-    }
-    expect(screen.getByRole('button', { name: 'Publicar cardápio' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Salada 1' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Publicar cardápio' })).toBeEnabled()
+    expect(screen.queryByRole('button', { name: 'Salvar opções' })).not.toBeInTheDocument()
   })
 
-  it('id guardado de outro dia e ignorado: volta ao estado 1', async () => {
+  it('trocar as opcoes mostra "Salvar opcoes", segura a publicacao e envia PUT /cardapios/{id}/opcoes', async () => {
     servirLoja()
     const cenario = servirCardapioDoPainel({ cardapio: cardapioDeTeste('Rascunho') })
-    localStorage.setItem('kf:cardapio-hoje', JSON.stringify({ data: '2000-01-01', id: 7 }))
     await abrirCardapio()
+    await screen.findAllByRole('checkbox')
 
-    expect(await screen.findByRole('button', { name: 'Criar cardápio' })).toBeInTheDocument()
-    expect(cenario.chamadas.porId).toEqual([])
+    await marcar('Salada 1')
+    await marcar('Carne 1')
+
+    expect(screen.getByText('3 opções no cardápio')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Publicar cardápio' })).toBeDisabled()
+    expect(screen.getByText('Salve as opções antes de publicar.')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar opções' }))
+
+    await waitFor(() => expect(cenario.chamadas.alteradas).toEqual([{ id: 7, opcoesIds: [3, 7, 6] }]))
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Salvar opções' })).not.toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Publicar cardápio' })).toBeEnabled()
+    expect(marcadas().map((caixa) => caixa.getAttribute('aria-label')).sort()).toEqual(['Acompanhamento 1', 'Bebida 1', 'Salada 1'])
   })
 
-  it('id guardado que nao existe mais (404) cai no estado 1', async () => {
+  it('voltar ao que ja estava salvo some com "Salvar opcoes"; sem nenhuma opcao nao salva', async () => {
     servirLoja()
-    servirCardapioDoPainel({ cardapio: null })
-    localStorage.setItem('kf:cardapio-hoje', JSON.stringify({ data: hojeEmBrasilia(), id: 99 }))
+    servirCardapioDoPainel({ cardapio: cardapioDeTeste('Rascunho', 7, [1]) })
     await abrirCardapio()
+    await screen.findAllByRole('checkbox')
 
-    expect(await screen.findByRole('button', { name: 'Criar cardápio' })).toBeInTheDocument()
+    await marcar('Salada 1')
+    expect(screen.getByRole('button', { name: 'Salvar opções' })).toBeEnabled()
+    await marcar('Salada 1')
+    expect(screen.queryByRole('button', { name: 'Salvar opções' })).not.toBeInTheDocument()
+
+    await marcar('Carne 1') // tira a unica opcao
+    expect(screen.getByRole('button', { name: 'Salvar opções' })).toBeDisabled()
+  })
+
+  it('erro da API ao salvar vira banner e as marcacoes ficam', async () => {
+    servirLoja()
+    servirCardapioDoPainel({ cardapio: cardapioDeTeste('Rascunho'), recusarAlteracao: { status: 400, detail: 'Só é possível trocar as opções de um cardápio em rascunho.' } })
+    await abrirCardapio()
+    await screen.findAllByRole('checkbox')
+
+    await marcar('Salada 1')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar opções' }))
+
+    expect(await screen.findByText('Só é possível trocar as opções de um cardápio em rascunho.')).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Salada 1' })).toHaveAttribute('aria-checked', 'true')
   })
 
   it('publicar chama /publicar e passa para Publicado', async () => {
     servirLoja()
     const cenario = servirCardapioDoPainel({ cardapio: cardapioDeTeste('Rascunho') })
-    localStorage.setItem('kf:cardapio-hoje', JSON.stringify({ data: hojeEmBrasilia(), id: 7 }))
     await abrirCardapio()
 
     await userEvent.click(await screen.findByRole('button', { name: 'Publicar cardápio' }))
@@ -146,16 +165,18 @@ describe('estado 2: rascunho', () => {
   })
 })
 
-describe('estados 3 e 4: publicado e fechado', () => {
-  it('publicado: pilula, texto de apoio e "Fechar cardapio"; o GET /cardapios/hoje o encontra sem id guardado', async () => {
+describe('estados 3 e 4: publicado e fechado (opcoes so para leitura)', () => {
+  it('publicado: pilula, texto de apoio, "Fechar cardapio" e checkboxes desabilitados', async () => {
     servirLoja()
-    const cenario = servirCardapioDoPainel({ cardapio: cardapioDeTeste('Publicado') })
+    servirCardapioDoPainel({ cardapio: cardapioDeTeste('Publicado') })
     await abrirCardapio()
 
     expect(await screen.findByText('Publicado')).toBeInTheDocument()
     expect(screen.getByText('O cliente já está vendo. Pra tirar um item hoje, marque como esgotado na aba Hoje.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Fechar cardápio' })).toBeInTheDocument()
-    expect(cenario.chamadas.porId).toEqual([])
+    const caixas = screen.getAllByRole('checkbox')
+    expect(caixas).toHaveLength(3)
+    for (const caixa of caixas) expect(caixa).toBeDisabled()
   })
 
   it('fechar passa para Fechado ("Encerrado por hoje.") e reabrir chama /publicar', async () => {
@@ -187,7 +208,6 @@ describe('estados 3 e 4: publicado e fechado', () => {
   it('erro ao publicar vira banner no topo e nao muda o estado', async () => {
     servirLoja()
     servirCardapioDoPainel({ cardapio: cardapioDeTeste('Rascunho') })
-    localStorage.setItem('kf:cardapio-hoje', JSON.stringify({ data: hojeEmBrasilia(), id: 7 }))
     const { http, HttpResponse } = await import('msw')
     const { servidor } = await import('../../../test/servidor')
     servidor.use(

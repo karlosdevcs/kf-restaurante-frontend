@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { buscarPedido, listarPedidos } from '../../../api/pedidos'
+import { listarPedidos } from '../../../api/pedidos'
 import type { PedidoResumo } from '../../../api/tipos'
 
 export const CHAVE_DOS_PEDIDOS_DE_HOJE = ['pedidos', 'hoje'] as const
@@ -20,17 +20,5 @@ export function usePedidosDeHoje() {
     refetchInterval: INTERVALO_DA_LISTA,
     refetchOnWindowFocus: true,
     staleTime: 0,
-  })
-}
-
-// Detalhe (itens, endereco, referencia, observacao, troco), buscado sob demanda por pedido. Os itens de um pedido sao
-// congelados e so o status muda (e ele vem da lista), entao o cache por id nunca expira: o polling da lista nao refaz detalhes.
-export function usePedidoDetalhe(id: number) {
-  return useQuery({
-    queryKey: ['pedido', id],
-    queryFn: ({ signal }) => buscarPedido(id, signal),
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnWindowFocus: false,
   })
 }

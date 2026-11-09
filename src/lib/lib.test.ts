@@ -168,7 +168,12 @@ function pedido(id: number, status: string): PedidoResumo {
     telefone: '62998124471',
     status,
     formaDePagamento: 'Pix',
+    trocoPara: null,
     tipoDeEntrega: 'Retirada',
+    endereco: null,
+    referencia: null,
+    observacao: null,
+    itens: [],
     total: 10,
   }
 }

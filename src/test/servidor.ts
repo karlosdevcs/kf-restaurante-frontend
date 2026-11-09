@@ -11,6 +11,7 @@ const respostasDeFundo = [
   http.get(`${API}/pedidos`, () => HttpResponse.json([])),
   http.get(`${API}/opcoes`, () => HttpResponse.json([])),
   http.get(`${API}/tamanhos`, () => HttpResponse.json([])),
+  http.get(`${API}/cardapios/hoje/painel`, () => HttpResponse.json({ status: 404, title: 'Não encontrado.' }, { status: 404 })),
   http.get(`${API}/cardapios/hoje`, () => HttpResponse.json({ status: 404, title: 'Não encontrado.' }, { status: 404 })),
 ]
 

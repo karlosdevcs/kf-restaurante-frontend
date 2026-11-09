@@ -32,20 +32,22 @@ O código do backend vence a spec; cada divergência é registrada aqui.
 
 | # | Onde | Spec diz | Código diz | O que foi feito |
 |---|---|---|---|---|
-| 1 | Mensagem de 401 e 403 sem corpo explicativo (seção 10.3) | "A mensagem para a tela é `detail` e, se não houver, `title`" | `UseStatusCodePages()` devolve `title` em inglês ("Unauthorized", "Forbidden") e nenhum `detail` | Sem `detail`, a tela usa um texto em português por status (401 "Você precisa entrar para continuar.", 403 "Você não tem permissão para fazer isso.", 404, 409, 5xx) em vez do `title` em inglês. Com `detail` (400, 403 de hierarquia, 409...), usa o `detail` da API |
+| 1 | (resolvida no backend depois das 11 fases) Mensagem de 401 e 403 sem corpo explicativo (seção 10.3) | "A mensagem para a tela é `detail` e, se não houver, `title`" | `UseStatusCodePages()` devolve `title` em inglês ("Unauthorized", "Forbidden") e nenhum `detail` | Sem `detail`, a tela usa um texto em português por status (401 "Você precisa entrar para continuar.", 403 "Você não tem permissão para fazer isso.", 404, 409, 5xx) em vez do `title` em inglês. Com `detail` (400, 403 de hierarquia, 409...), usa o `detail` da API |
 | 2 | Dados do banco de desenvolvimento (não é divergência do código) | Tamanho do meio, ou o primeiro, é o padrão (seção 9.3) | O banco do usuário tem os tamanhos G (R$ 0,00, limite 0) e M (R$ 20,00, limite 3) | A tela segue a regra da spec: abre em "Marmita G" (inutilizável) e o cliente precisa tocar em M. É sobra de testes antigos; corrigir o tamanho G na aba Cadastros resolve |
 
 Conferido na fase 0: as 33 rotas da seção 13 batem com as 33 de `EndpointsProtegidosTests` (7 abertas, 4 "logado", 7 de usuários, 15 por permissão).
 
 ## Lacunas do backend
 
-Nada do backend é alterado. Cada lacuna entra aqui com a mitigação adotada no front.
+Nada do backend era alterado durante as 11 fases. Depois delas, o usuário pediu para corrigir as lacunas, e o backend foi alterado (commit à parte, feito pelo usuário).
 
-| # | Lacuna | Mitigação no front |
+| # | Lacuna | Situação |
 |---|---|---|
-| 1 | Cardápio em rascunho não é consultável pelo painel: `GET /cardapios/hoje` dá 404 para rascunho e não há listagem nem `PUT` para trocar as opções (seção 16, item 4) | Guarda o id do cardápio criado no `localStorage` (`kf:cardapio-hoje`, com o dia de Brasília) e o reencontra por `GET /cardapios/{id}`. Rascunho criado em outro dispositivo dá 409, e a tela mostra a mensagem da API mais a explicação. **Pedido ao backend:** `GET /cardapios/hoje` (ou rota própria) devolver o rascunho a quem tem `GerenciarCardapio`, e um `PUT` para trocar as opções de um rascunho |
-| 2 | `GET /pedidos` devolve só o resumo; itens, endereço, referência, observação e troco exigem uma chamada por pedido (seção 16, item 9) | Detalhe buscado sob demanda por pedido visível, com cache sem expiração por id; o polling da lista não o refaz. **Pedido ao backend, se pesar:** incluir os itens no resumo ou aceitar um parâmetro para isso |
-| 3 | `GET /pedidos/{id}` exige `VerPedidos`, então o cliente não consegue recarregar o próprio pedido (seção 16, item 10) | A confirmação usa a resposta do `POST /pedidos`, guardada em `sessionStorage` (`kf:ultimo-pedido`) para sobreviver a um recarregamento acidental |
+| 1 | Cardápio em rascunho não consultável pelo painel e sem como trocar as opções (seção 16, item 4) | **Corrigida.** `GET /cardapios/hoje/painel` (qualquer situação) e `PUT /cardapios/{id}/opcoes` (só rascunho). O front usa os dois, não guarda mais id no `localStorage` e permite trocar as opções do rascunho |
+| 2 | `GET /pedidos` só com resumo (seção 16, item 9) | **Corrigida.** A lista traz itens, endereço, referência, observação e troco; o front removeu a busca de detalhe por pedido |
+| 3 | `GET /pedidos/{id}` exige `VerPedidos` (seção 16, item 10) | **Mantida de propósito.** Abrir a rota ao cliente vazaria pedidos de outras pessoas por id sequencial. A confirmação segue com a resposta do `POST /pedidos` |
+| 4 | 401 e 403 sem `detail` (divergência 1) | **Corrigida.** O backend manda `detail` em português; o texto padrão por status do front virou só reserva |
+| 5 | Sem exclusão de dados | **Mantida.** Decisão de domínio (pedido é histórico) |
 
 ## Decisões tomadas
 
@@ -174,3 +176,9 @@ Decisões marcadas como "decisão minha" na spec seguem o padrão que a própria
 | 12 | `features/cliente/clienteCelular.test.tsx` e `features/cliente/clienteDesktop.test.tsx` |
 | 13 | `features/loja/cardapio/cardapio.test.tsx` |
 
+
+## Depois das 11 fases: correção das lacunas do backend
+
+- Backend: `CardapioDoDia.SubstituirOpcoes`, `GET /cardapios/hoje/painel`, `PUT /cardapios/{id}/opcoes`, `PedidoResumoResponse` com itens e dados do pedido, e `UseStatusCodePages` com `detail` em português. 155 testes do backend passam (3 novos de domínio; a tabela de segurança de rotas ganhou as 2 rotas novas). Conferido contra o banco real numa API em outra porta: 401 com `detail`, painel 200, PUT em cardápio publicado 400 com a mensagem, id inexistente 404 e resumo com itens. O caminho "PUT em rascunho" só tem teste de domínio e de interface (não havia rascunho no banco real e não criei dados).
+- Frontend: `lib`/`api` novos (`buscarCardapioDoPainel`, `alterarOpcoesDoCardapio`), `CardapioPage` com rascunho editável ("Salvar opções" e publicar travado até salvar), pedidos sem busca de detalhe, `cardapioGuardado.ts` e `usePedidoDetalhe` removidos, teste estático agora exige que nada use `localStorage`. 366 testes.
+- Sobra: a conta `e2e-dois@teste.local` (superuser de teste) foi criada no banco por esta verificação, além das listadas em "Riscos e pendências".

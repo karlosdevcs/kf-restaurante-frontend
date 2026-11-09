@@ -98,16 +98,15 @@ describe('aba Pedidos no computador', () => {
     expect(screen.getByText('Nenhum pedido ainda hoje.')).toBeInTheDocument()
   })
 
-  it('o detalhe de cada pedido e buscado uma vez; o polling da lista nao o refaz', async () => {
+  it('a lista ja traz os itens: nenhuma chamada GET /pedidos/{id} por pedido, nem no polling', async () => {
     const cenario = servirLoja()
     await abrirPedidos()
     await screen.findByText('2x Marmita M (Arroz, Feijão), 1x Bebida 1')
-    expect(cenario.chamadas.detalhes).toEqual({ 1: 1, 2: 1 })
 
     atualizarPeloFoco()
     await waitFor(() => expect(cenario.chamadas.lista).toBeGreaterThan(1))
 
-    expect(cenario.chamadas.detalhes).toEqual({ 1: 1, 2: 1 })
+    expect(cenario.chamadas.detalhes).toEqual({})
   })
 
   it('pedido novo no polling entra no topo e e anunciado para leitor de tela; a primeira carga nao anuncia nada', async () => {
@@ -246,9 +245,9 @@ describe('cabecalho da loja: selo de aberta e fechada', () => {
 })
 
 describe('contratos de dados usados nesta tela', () => {
-  it('os resumos de teste batem com o contrato (sem itens, endereco, referencia, observacao nem troco)', () => {
+  it('os resumos de teste batem com o contrato (tudo do pedido, menos a mensagem e o link do WhatsApp)', () => {
     expect(Object.keys(RESUMO_NAO_ENVIADO).sort()).toEqual(
-      ['formaDePagamento', 'horaPedido', 'id', 'nomeCliente', 'numero', 'status', 'telefone', 'tipoDeEntrega', 'total'].sort(),
+      ['endereco', 'formaDePagamento', 'horaPedido', 'id', 'itens', 'nomeCliente', 'numero', 'observacao', 'referencia', 'status', 'telefone', 'tipoDeEntrega', 'total', 'trocoPara'].sort(),
     )
   })
 })

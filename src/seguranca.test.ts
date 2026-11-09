@@ -40,11 +40,8 @@ describe('regras fixas de seguranca no codigo', () => {
     expect(semRel.map(({ caminho }) => caminho)).toEqual([])
   })
 
-  it('o token nunca vai para localStorage; no localStorage so o id do cardapio de hoje', () => {
-    const usos = codigo.filter(({ texto }) => /localStorage/.test(texto)).map(({ caminho }) => caminho)
-
-    expect(usos).toEqual(['/src/features/loja/cardapio/cardapioGuardado.ts'])
-    expect(arquivo('cardapioGuardado.ts')?.texto).not.toMatch(/token|senha/i)
+  it('nada do app usa localStorage (token e demais dados ficam so em sessionStorage ou na memoria)', () => {
+    expect(codigo.filter(({ texto }) => /localStorage/.test(texto)).map(({ caminho }) => caminho)).toEqual([])
   })
 
   it('a sessao fica em sessionStorage (chave kf:sessao), nunca em localStorage', () => {

@@ -149,8 +149,13 @@ Antes de expor a API na internet, o backend precisa de HTTPS e de limite de tent
 
 ## Lacunas do backend encontradas
 
-O front contorna, não inventa endpoint. Para decidir o que fazer no backend:
+As três lacunas que o front contornava foram tratadas no backend (e o front passou a usar o que o backend oferece agora):
 
-1. **Rascunho de cardápio não é consultável pelo painel.** `GET /cardapios/hoje` responde 404 para rascunho, e não há listagem de cardápios nem como trocar as opções de um cardápio já criado. O front guarda o id do cardápio criado no `localStorage` (só o id e o dia) e o reencontra por `GET /cardapios/{id}`. Se o rascunho foi criado em outro dispositivo, o painel não o acha e `POST /cardapios` dá 409; a tela mostra a mensagem da API e explica. *Pedido:* `GET /cardapios/hoje` (ou uma rota própria) devolver o rascunho a quem tem `GerenciarCardapio`, e um `PUT` para trocar as opções de um rascunho.
-2. **`GET /pedidos` devolve só o resumo.** Itens, endereço, referência, observação e troco exigem uma chamada por pedido. O front busca o detalhe sob demanda, com cache por id, e o polling da lista não o refaz. *Pedido, se pesar com muitos pedidos:* incluir os itens no resumo ou aceitar um parâmetro para isso.
-3. **`GET /pedidos/{id}` exige `VerPedidos`.** Por isso o cliente não consegue reler o próprio pedido e a confirmação usa a resposta do `POST /pedidos` (guardada em `sessionStorage` para sobreviver a um recarregamento acidental).
+1. **Rascunho de cardápio.** Agora existe `GET /cardapios/hoje/painel` (o cardápio de hoje em qualquer situação, para quem tem `GerenciarCardapio`) e `PUT /cardapios/{id}/opcoes` (troca as opções de um rascunho). O painel não guarda mais id no navegador e deixa trocar as opções antes de publicar.
+2. **`GET /pedidos` sem itens.** A lista de pedidos agora traz itens, endereço, referência, observação e troco. O painel não faz mais uma chamada por pedido.
+3. **Mensagens de 401 e 403.** A API agora manda `detail` em português nesses erros.
+
+Continua como está, de propósito:
+
+- `GET /pedidos/{id}` exige `VerPedidos`. Abri-lo ao cliente deixaria qualquer pessoa ler pedidos de outras (nome, telefone, endereço) só trocando o número na URL. Por isso a confirmação usa a resposta do `POST /pedidos`, guardada em `sessionStorage` para sobreviver a um recarregamento acidental.
+- A API não tem exclusão de opções, tamanhos, cardápios, usuários nem pedidos (pedido é histórico; só desativar usuário).

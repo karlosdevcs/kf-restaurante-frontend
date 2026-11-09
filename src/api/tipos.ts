@@ -100,6 +100,9 @@ export interface CriarCardapioRequest {
   opcoesIds: number[]
 }
 
+// a lista SUBSTITUI as opcoes do cardapio (so em rascunho)
+export type AlterarOpcoesDoCardapioRequest = CriarCardapioRequest
+
 export interface Restaurante {
   aberto: boolean
   whatsApp: string | null
@@ -164,7 +167,7 @@ export interface Pedido {
   linkWhatsApp: string | null // null = loja sem WhatsApp cadastrado
 }
 
-// GET /pedidos devolve o resumo: sem itens e sem mensagem
+// GET /pedidos devolve o pedido SEM a mensagem do WhatsApp e o link (esses so no detalhe)
 export interface PedidoResumo {
   id: number
   numero: number
@@ -173,7 +176,12 @@ export interface PedidoResumo {
   telefone: string
   status: StatusPedido
   formaDePagamento: FormaDePagamento
+  trocoPara: number | null
   tipoDeEntrega: TipoDeEntrega
+  endereco: string | null
+  referencia: string | null
+  observacao: string | null
+  itens: ItemDoPedido[]
   total: number
 }
 

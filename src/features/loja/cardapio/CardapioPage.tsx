@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { ehApiError } from '../../../api/client'
 import type { Cardapio, Opcao } from '../../../api/tipos'
 import { Banner, Button, ListCheckbox } from '../../../components/ui'
 import { categoriaInfo } from '../../../lib/categoriaConfig'
@@ -16,7 +15,7 @@ const porCategoriaENome = (a: Opcao, b: Opcao) => ordemDaCategoria(a) - ordemDaC
 
 // Textos de apoio de cada estado (spec, 11.3)
 const APOIO: Record<string, { texto: string; secundario?: string }> = {
-  Rascunho: { texto: 'Escolha feita. O cliente só vê depois que você publicar.', secundario: 'Hoje não dá para trocar as opções de um cardápio criado.' },
+  Rascunho: { texto: 'Escolha feita. O cliente só vê depois que você publicar.', secundario: 'Você pode trocar as opções até publicar.' },
   Publicado: { texto: 'O cliente já está vendo. Pra tirar um item hoje, marque como esgotado na aba Hoje.' },
   Fechado: { texto: 'Encerrado por hoje.' },
 }
@@ -31,18 +30,26 @@ export function CardapioPage() {
   const titulo = useFocoNoTitulo(cardapio !== undefined)
   const semCardapio = cardapio === null
 
-  const todas = useTodasAsOpcoes(semCardapio)
+  // sem cardapio ou em rascunho a lista e editavel: mostra todas as opcoes cadastradas para marcar
+  const editavel = semCardapio || cardapio?.situacao === 'Rascunho'
+  const todas = useTodasAsOpcoes(editavel)
   const [marcadas, setMarcadas] = useState<number[]>([])
+  // rascunho: `null` = ainda nao mexeu (vale o que a API tem); com lista = mudanca que ainda nao foi salva
+  const [editadas, setEditadas] = useState<number[] | null>(null)
   const opcoesParaEscolher = useMemo(() => (todas.data ?? []).toSorted(porCategoriaENome), [todas.data])
 
   if (painel.isPending) return <CarregandoCardapio />
   if (painel.isError || cardapio === undefined) return <CartaoDeErroDeCarga aoTentarDeNovo={() => void painel.refetch()} />
 
-  const alternar = (id: number) => setMarcadas((atuais) => (atuais.includes(id) ? atuais.filter((marcada) => marcada !== id) : [...atuais, id]))
+  const idsDoCardapio = cardapio ? cardapio.opcoes.map((opcao) => opcao.id) : []
+  const selecionadas = cardapio ? (editadas ?? idsDoCardapio) : marcadas
+  const trocar = (atuais: number[], id: number) => (atuais.includes(id) ? atuais.filter((marcada) => marcada !== id) : [...atuais, id])
+  const alternar = (id: number) => (cardapio ? setEditadas(trocar(selecionadas, id)) : setMarcadas((atuais) => trocar(atuais, id)))
+  const mudou = editadas !== null && (editadas.length !== idsDoCardapio.length || editadas.some((id) => !idsDoCardapio.includes(id)))
 
   const situacao = cardapio?.situacao ?? null
-  const mostradas = cardapio ? [...cardapio.opcoes].sort(porCategoriaENome) : opcoesParaEscolher
-  const quantidade = cardapio ? cardapio.opcoes.length : marcadas.length
+  const mostradas = editavel ? opcoesParaEscolher : cardapio ? [...cardapio.opcoes].sort(porCategoriaENome) : []
+  const quantidade = selecionadas.length
   const apoio = situacao ? APOIO[situacao] : undefined
 
   // ---- botao de acao de cada estado ----
@@ -64,13 +71,14 @@ export function CardapioPage() {
       </Button>
     )
   } else if (cardapio) {
-    const botao = (rotulo: string, ocupado: string, executar: () => void, emAndamento: boolean) => (
+    const botao = (rotulo: string, ocupado: string, executar: () => void, emAndamento: boolean, desabilitado = false) => (
       <Button
         variante="primary-ink"
         altura={desktop ? 46 : 52}
         raio={desktop ? 'escolha' : 'pilula'}
         larguraTotal={!desktop}
         className={desktop ? 'px-5' : undefined}
+        disabled={desabilitado}
         ocupado={emAndamento}
         rotuloOcupado={ocupado}
         onClick={executar}
@@ -78,12 +86,33 @@ export function CardapioPage() {
         {rotulo}
       </Button>
     )
-    if (situacao === 'Rascunho') acao = botao('Publicar cardápio', 'Publicando...', () => acoes.publicar.mutate(cardapio.id), acoes.publicar.isPending)
-    else if (situacao === 'Publicado') acao = botao('Fechar cardápio', 'Fechando...', () => acoes.fechar.mutate(cardapio.id), acoes.fechar.isPending)
+    if (situacao === 'Rascunho') {
+      acao = (
+        <div className="flex flex-col gap-2">
+          {mudou ? (
+            <Button
+              variante="outline"
+              altura={desktop ? 46 : 52}
+              raio={desktop ? 'escolha' : 'pilula'}
+              larguraTotal={!desktop}
+              className={desktop ? 'px-5' : undefined}
+              disabled={selecionadas.length === 0}
+              ocupado={acoes.alterarOpcoes.isPending}
+              rotuloOcupado="Salvando..."
+              onClick={() => acoes.alterarOpcoes.mutate({ id: cardapio.id, opcoesIds: selecionadas }, { onSuccess: () => setEditadas(null) })}
+            >
+              Salvar opções
+            </Button>
+          ) : null}
+          {mudou ? <p className="text-[12px] text-muted">Salve as opções antes de publicar.</p> : null}
+          {botao('Publicar cardápio', 'Publicando...', () => acoes.publicar.mutate(cardapio.id), acoes.publicar.isPending, mudou)}
+        </div>
+      )
+    } else if (situacao === 'Publicado') acao = botao('Fechar cardápio', 'Fechando...', () => acoes.fechar.mutate(cardapio.id), acoes.fechar.isPending)
     else if (situacao === 'Fechado') acao = botao('Reabrir cardápio', 'Reabrindo...', () => acoes.publicar.mutate(cardapio.id), acoes.publicar.isPending)
   }
 
-  const erroAoCriar = acoes.criar.isError ? acoes.criar.error : null
+  const erroDaEdicao = acoes.criar.isError ? acoes.criar.error : acoes.alterarOpcoes.isError ? acoes.alterarOpcoes.error : null
 
   return (
     <div className="flex flex-col gap-4">
@@ -106,14 +135,7 @@ export function CardapioPage() {
           </div>
         ) : null}
 
-        {erroAoCriar ? (
-          <div className="flex flex-col gap-1">
-            <Banner tipo="erro">{erroAoCriar.message}</Banner>
-            {ehApiError(erroAoCriar) && erroAoCriar.status === 409 ? (
-              <p className="text-[13px] text-muted">Esse cardápio está em rascunho e não pode ser aberto por este painel.</p>
-            ) : null}
-          </div>
-        ) : null}
+        {erroDaEdicao ? <Banner tipo="erro">{erroDaEdicao.message}</Banner> : null}
 
         {desktop && acao ? <div>{acao}</div> : null}
       </section>
@@ -122,17 +144,17 @@ export function CardapioPage() {
         {desktop ? `${pluralizar(quantidade, 'opção', 'opções')} no cardápio` : pluralizar(quantidade, 'opção', 'opções')}
       </p>
 
-      {semCardapio && todas.isPending ? <Esqueleto className="h-[120px]" /> : null}
-      {semCardapio && todas.isError ? <CartaoDeErroDeCarga aoTentarDeNovo={() => void todas.refetch()} /> : null}
-      {semCardapio && todas.data?.length === 0 ? <p className="text-[14px] text-muted">Nenhuma opção cadastrada ainda. Cadastre as opções na aba Cadastros.</p> : null}
+      {editavel && todas.isPending ? <Esqueleto className="h-[120px]" /> : null}
+      {editavel && todas.isError ? <CartaoDeErroDeCarga aoTentarDeNovo={() => void todas.refetch()} /> : null}
+      {editavel && todas.data?.length === 0 ? <p className="text-[14px] text-muted">Nenhuma opção cadastrada ainda. Cadastre as opções na aba Cadastros.</p> : null}
 
       <ul
-        aria-label={semCardapio ? 'Opções para escolher' : 'Opções do cardápio'}
+        aria-label={editavel ? 'Opções para escolher' : 'Opções do cardápio'}
         className={cx(desktop ? 'grid gap-[10px]' : 'flex flex-col')}
         style={desktop ? { gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' } : undefined}
       >
         {mostradas.map((opcao) => {
-          const marcada = cardapio ? true : marcadas.includes(opcao.id)
+          const marcada = editavel ? selecionadas.includes(opcao.id) : true
           return (
             <li
               key={opcao.id}
@@ -141,7 +163,7 @@ export function CardapioPage() {
                 desktop && (marcada ? 'border-brand' : 'border-line-soft'),
               )}
             >
-              <ListCheckbox marcado={marcada} desabilitado={cardapio !== null} onAlternar={() => alternar(opcao.id)} aria-label={opcao.nome}>
+              <ListCheckbox marcado={marcada} desabilitado={!editavel} onAlternar={() => alternar(opcao.id)} aria-label={opcao.nome}>
                 <span className="block">{opcao.nome}</span>
                 <span className="block text-[12px] font-normal text-muted">
                   {categoriaInfo(opcao.categoria).rotulo}
